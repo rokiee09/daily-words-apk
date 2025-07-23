@@ -1,0 +1,177 @@
+[
+  {
+    "word": "harsh",
+    "type": "adjective",
+    "meaning": "sert",
+    "sentence_en": "The judge gave a harsh sentence.",
+    "sentence_tr": "Yargıç sert bir ceza verdi."
+  },
+  {
+    "word": "cautious",
+    "type": "adjective",
+    "meaning": "dikkatli",
+    "sentence_en": "Be cautious when driving in the rain.",
+    "sentence_tr": "Yağmurda araba kullanırken dikkatli ol."
+  },
+  {
+    "word": "frustration",
+    "type": "noun",
+    "meaning": "hayal kırıklığı",
+    "sentence_en": "He couldn't hide his frustration after failing again.",
+    "sentence_tr": "Yine başarısız olunca hayal kırıklığını gizleyemedi."
+  },
+  {
+    "word": "emerge",
+    "type": "verb",
+    "meaning": "ortaya çıkmak",
+    "sentence_en": "New problems began to emerge after the update.",
+    "sentence_tr": "Güncellemeden sonra yeni problemler ortaya çıkmaya başladı."
+  },
+  {
+    "word": "benevolent",
+    "type": "adjective",
+    "meaning": "iyi niyetli",
+    "sentence_en": "She was a benevolent leader who cared for her people.",
+    "sentence_tr": "Halkını önemseyen iyi niyetli bir liderdi."
+  },
+  {
+    "word": "abandon",
+    "type": "verb",
+    "meaning": "terk etmek",
+    "sentence_en": "He decided to abandon the project due to lack of funds.",
+    "sentence_tr": "Yetersiz fon nedeniyle projeyi terk etmeye karar verdi."
+  },
+  {
+    "word": "genuine",
+    "type": "adjective",
+    "meaning": "gerçek, samimi",
+    "sentence_en": "Her smile was warm and genuine.",
+    "sentence_tr": "Onun gülümsemesi sıcak ve samimiydi."
+  },
+  {
+    "word": "justify",
+    "type": "verb",
+    "meaning": "haklı göstermek",
+    "sentence_en": "Can you justify your actions?",
+    "sentence_tr": "Davranışlarını haklı gösterebilir misin?"
+  },
+  {
+    "word": "idle",
+    "type": "adjective",
+    "meaning": "boş, aylak",
+    "sentence_en": "The workers stood idle during the strike.",
+    "sentence_tr": "Grev sırasında işçiler boş durdu."
+  },
+  {
+    "word": "dazzling",
+    "type": "adjective",
+    "meaning": "göz kamaştırıcı",
+    "sentence_en": "The performance was absolutely dazzling.",
+    "sentence_tr": "Gösteri kesinlikle göz kamaştırıcıydı."
+  },
+  {
+    "word": "persistent",
+    "type": "adjective",
+    "meaning": "ısrarcı, kararlı",
+    "sentence_en": "Her persistent efforts finally paid off.",
+    "sentence_tr": "Onun ısrarcı çabaları sonunda meyvesini verdi."
+  },
+  {
+    "word": "elaborate",
+    "type": "adjective",
+    "meaning": "ayrıntılı, karmaşık",
+    "sentence_en": "The plan was very elaborate and well-thought-out.",
+    "sentence_tr": "Plan çok ayrıntılı ve iyi düşünülmüştü."
+  },
+  {
+    "word": "resilient",
+    "type": "adjective",
+    "meaning": "dayanıklı, esnek",
+    "sentence_en": "Children are remarkably resilient to change.",
+    "sentence_tr": "Çocuklar değişime karşı şaşırtıcı derecede dayanıklıdır."
+  },
+  {
+    "word": "profound",
+    "type": "adjective",
+    "meaning": "derin, derinlemesine",
+    "sentence_en": "The book had a profound impact on my thinking.",
+    "sentence_tr": "Kitap düşüncelerim üzerinde derin bir etki bıraktı."
+  },
+  {
+    "word": "authentic",
+    "type": "adjective",
+    "meaning": "gerçek, otantik",
+    "sentence_en": "This restaurant serves authentic Italian food.",
+    "sentence_tr": "Bu restoran gerçek İtalyan yemeği servis ediyor."
+  },
+  {
+    "word": "efficient",
+    "type": "adjective",
+    "meaning": "verimli, etkili",
+    "sentence_en": "The new system is much more efficient.",
+    "sentence_tr": "Yeni sistem çok daha verimli."
+  },
+  {
+    "word": "confident",
+    "type": "adjective",
+    "meaning": "kendinden emin",
+    "sentence_en": "She was confident about her presentation.",
+    "sentence_tr": "Sunumu hakkında kendinden emindi."
+  },
+  {
+    "word": "curious",
+    "type": "adjective",
+    "meaning": "meraklı",
+    "sentence_en": "Children are naturally curious about everything.",
+    "sentence_tr": "Çocuklar doğal olarak her şeyi merak eder."
+  },
+  {
+    "word": "generous",
+    "type": "adjective",
+    "meaning": "cömert",
+    "sentence_en": "He was very generous with his time and money.",
+    "sentence_tr": "Zamanı ve parası konusunda çok cömertti."
+  },
+  {
+    "word": "patient",
+    "type": "adjective",
+    "meaning": "sabırlı",
+    "sentence_en": "Good teachers are always patient with their students.",
+    "sentence_tr": "İyi öğretmenler öğrencilerine karşı her zaman sabırlıdır."
+  },
+  {
+    "word": "creative",
+    "type": "adjective",
+    "meaning": "yaratıcı",
+    "sentence_en": "She has a very creative approach to problem-solving.",
+    "sentence_tr": "Problem çözme konusunda çok yaratıcı bir yaklaşımı var."
+  },
+  {
+    "word": "reliable",
+    "type": "adjective",
+    "meaning": "güvenilir",
+    "sentence_en": "He is a reliable employee who always meets deadlines.",
+    "sentence_tr": "O her zaman son teslim tarihlerini karşılayan güvenilir bir çalışan."
+  },
+  {
+    "word": "flexible",
+    "type": "adjective",
+    "meaning": "esnek",
+    "sentence_en": "The company offers flexible working hours.",
+    "sentence_tr": "Şirket esnek çalışma saatleri sunuyor."
+  },
+  {
+    "word": "ambitious",
+    "type": "adjective",
+    "meaning": "hırslı, tutkulu",
+    "sentence_en": "She is very ambitious about her career goals.",
+    "sentence_tr": "Kariyer hedefleri konusunda çok hırslı."
+  },
+  {
+    "word": "enthusiastic",
+    "type": "adjective",
+    "meaning": "hevesli, coşkulu",
+    "sentence_en": "The students were enthusiastic about the new project.",
+    "sentence_tr": "Öğrenciler yeni proje hakkında hevesliydi."
+  }
+]
