@@ -27,7 +27,7 @@ function Quiz() {
           setError("Yeterli kelime bulunamadı. Lütfen daha sonra tekrar deneyin.");
           return;
         }
-
+        
         // 2 çoktan seçmeli soru
         const mcQuestions = daily.slice(0, 2).map((w, index) => {
           // Diğer kelimelerin anlamlarını yanlış cevap olarak kullan
@@ -241,14 +241,14 @@ function Quiz() {
     <div style={{ maxWidth: 500, margin: "2rem auto", padding: 16 }}>
       <h2>🎯 Mini Test ({step + 1}/5)</h2>
       
-            {q.type === "mc" && (
+      {q.type === "mc" && (
         <div>
           <div style={{ fontSize: "1.2rem", marginBottom: "20px", color: "#111" }}>
             <b>{q.word}</b> kelimesinin anlamı nedir?
           </div>
           <div style={{ display: "grid", gap: "12px" }}>
             {q.options.map((opt, index) => (
-              <button
+              <button 
                 key={`mc-${step}-${index}-${opt}`}
                 onClick={() => handleAnswer(opt)}
                 style={{
