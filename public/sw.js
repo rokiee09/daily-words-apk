@@ -4,7 +4,7 @@ const urlsToCache = [
   '/index.html',
   '/public/words.json',
   '/manifest.json',
-  '/daily%20words%20logo.png',
+  '/daily-words-logo.png',
   // Vite ve PWA için temel dosyalar
 ];
 
