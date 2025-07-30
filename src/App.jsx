@@ -23,7 +23,7 @@ function App() {
         borderBottom: "2px solid #eee",
         marginBottom: "20px"
       }}>
-        <img src="/daily%20words%20logo.png" alt="Logo" style={{ width: 64, height: 64, borderRadius: '50%', display: 'block', margin: '0 auto 12px auto' }} />
+        <img src="/daily-words-logo.png" alt="Logo" style={{ width: 64, height: 64, borderRadius: '50%', display: 'block', margin: '0 auto 12px auto' }} />
         <h1 style={{ 
           margin: 0, 
           color: "#333",
