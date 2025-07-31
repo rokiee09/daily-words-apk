@@ -1,11 +1,15 @@
 {
   "name": "Daily Words",
   "short_name": "DailyWords",
-  "start_url": ".",
+  "description": "Her gün 5 yeni İngilizce kelime öğren!",
+  "start_url": "https://daily-words-apk-git-main-burakavcis-projects.vercel.app/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#007bff",
-  "description": "Her gün 5 yeni İngilizce kelime öğren!",
+  "scope": "https://daily-words-apk-git-main-burakavcis-projects.vercel.app/",
+  "lang": "tr",
+  "dir": "ltr",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "/daily-words-logo.png",
@@ -19,5 +23,14 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "categories": ["education", "productivity"],
+  "screenshots": [
+    {
+      "src": "/daily-words-logo.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
   ]
-} 
+}
