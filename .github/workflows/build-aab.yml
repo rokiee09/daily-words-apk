@@ -35,26 +35,15 @@ jobs:
       run: |
         npm install -g @bubblewrap/cli
         
-    - name: Initialize Bubblewrap project
+    - name: Test manifest URL
       run: |
-        bubblewrap init --manifest https://daily-words-apk-git-main-burakavcis-projects.vercel.app/manifest.webmanifest
-      env:
-        BUBBLEWRAP_KEYSTORE_PATH: ${{ secrets.BUBBLEWRAP_KEYSTORE_PATH }}
-        BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.BUBBLEWRAP_KEYSTORE_PASSWORD }}
-        BUBBLEWRAP_KEY_ALIAS: ${{ secrets.BUBBLEWRAP_KEY_ALIAS }}
-        BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.BUBBLEWRAP_KEY_PASSWORD }}
+        curl -I https://daily-words-apk-git-main-burakavcis-projects.vercel.app/manifest.webmanifest
         
-    - name: Build AAB
+    - name: Initialize Bubblewrap project (without keystore)
       run: |
-        bubblewrap build --target android
-      env:
-        BUBBLEWRAP_KEYSTORE_PATH: ${{ secrets.BUBBLEWRAP_KEYSTORE_PATH }}
-        BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.BUBBLEWRAP_KEYSTORE_PASSWORD }}
-        BUBBLEWRAP_KEY_ALIAS: ${{ secrets.BUBBLEWRAP_KEY_ALIAS }}
-        BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.BUBBLEWRAP_KEY_PASSWORD }}
+        bubblewrap init --manifest https://daily-words-apk-git-main-burakavcis-projects.vercel.app/manifest.webmanifest --directory ./bubblewrap
         
-    - name: Upload AAB artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-release
-        path: app-release.aab 
+    - name: Build AAB (debug version)
+      run: |
+        cd bubblewrap
+        bubblewrap build --target android --skipPwaValidation 
