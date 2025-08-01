@@ -3,8 +3,13 @@
   "name": "Daily Words",
   "short_name": "DailyWords",
   "description": "Learn daily English words with examples and pronunciation.",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "https://daily-words-apk-git-main-burakavcis-projects.vercel.app/",
+  "scope": "https://daily-words-apk-git-main-burakavcis-projects.vercel.app/",
+  "scope_extensions": [
+    {
+      "origin": "https://daily-words-apk-git-main-burakavcis-projects.vercel.app"
+    }
+  ],
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#007bff",
