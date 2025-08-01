@@ -10,6 +10,7 @@
   "theme_color": "#007bff",
   "orientation": "portrait",
   "lang": "en",
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
   "launch_handler": {
     "client_mode": "navigate-existing"
   },
@@ -35,5 +36,10 @@
       "type": "image/png",
       "form_factor": "wide"
     }
-  ]
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
 } 

@@ -27,6 +27,12 @@ self.addEventListener('fetch', (event) => {
         // Return cached version or fetch from network
         return response || fetch(event.request);
       })
+      .catch(() => {
+        // Return offline page if both cache and network fail
+        if (event.request.destination === 'document') {
+          return caches.match('/index.html');
+        }
+      })
   );
 });
 
@@ -52,10 +58,39 @@ self.addEventListener('push', (event) => {
     data: {
       dateOfArrival: Date.now(),
       primaryKey: 1
-    }
+    },
+    actions: [
+      {
+        action: 'open',
+        title: 'Open App'
+      }
+    ]
   };
 
   event.waitUntil(
     self.registration.showNotification('Daily Words', options)
+  );
+});
+
+// Handle notification clicks
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  
+  if (event.action === 'open') {
+    event.waitUntil(
+      clients.openWindow('/')
+    );
+  }
+});
+
+// Activate event - clean up old caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name))
+      );
+    })
   );
 }); 
