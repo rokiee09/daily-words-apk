@@ -11,22 +11,22 @@ export default defineConfig({
         name: "Daily Words",
         short_name: "Words",
         description: "Her gün 5 yeni İngilizce kelime öğren!",
-        start_url: "/",
+        start_url: "https://daily-words-apk-git-main-burakavcis-projects.vercel.app/",
         display: "standalone",
         background_color: "#ffffff",
         theme_color: "#007bff",
-        scope: "/",
+        scope: "https://daily-words-apk-git-main-burakavcis-projects.vercel.app/",
         lang: "tr",
         orientation: "portrait",
         icons: [
           {
-            src: "/daily-words-logo.png",
+            src: "https://daily-words-apk-git-main-burakavcis-projects.vercel.app/daily-words-logo.png",
             sizes: "192x192",
             type: "image/png",
             purpose: "any maskable"
           },
           {
-            src: "/daily-words-logo.png",
+            src: "https://daily-words-apk-git-main-burakavcis-projects.vercel.app/daily-words-logo.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "any maskable"
