@@ -43,9 +43,24 @@ self.addEventListener('sync', (event) => {
   }
 });
 
+// Periodic background sync for app updates
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'periodic-sync') {
+    event.waitUntil(doPeriodicSync());
+  }
+});
+
 function doBackgroundSync() {
   // Sync any pending data when connection is restored
   return Promise.resolve();
+}
+
+function doPeriodicSync() {
+  // Update app content in background
+  return caches.open(CACHE_NAME)
+    .then((cache) => {
+      return cache.addAll(urlsToCache);
+    });
 }
 
 // Push notifications
