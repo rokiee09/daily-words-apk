@@ -35,21 +35,21 @@ jobs:
       run: |
         npm install -g @bubblewrap/cli
         
-    - name: Test manifest URL
+    - name: Create keystore
       run: |
-        curl -I https://daily-words-apk-git-main-burakavcis-projects.vercel.app/manifest.webmanifest
+        keytool -genkeypair -v -keystore daily-words-keystore.jks -alias dailywords -keyalg RSA -keysize 2048 -validity 10000 -storepass dailywords123 -keypass dailywords123 -dname "CN=Burak Avci, OU=Development, O=Daily Words, L=Istanbul, ST=Istanbul, C=TR"
         
-    - name: Initialize Bubblewrap project (without keystore)
+    - name: Initialize Bubblewrap project
       run: |
-        bubblewrap init --manifest https://daily-words-apk-git-main-burakavcis-projects.vercel.app/manifest.webmanifest --directory ./bubblewrap --skipPwaValidation
+        bubblewrap init --manifest https://daily-words-apk.vercel.app/manifest.webmanifest --directory ./bubblewrap
         
-    - name: Build AAB (debug version)
+    - name: Build AAB with keystore
       run: |
         cd bubblewrap
-        bubblewrap build --target android --skipPwaValidation
+        bubblewrap build --target android
         
     - name: Upload AAB artifact
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug
-        path: bubblewrap/app-debug.aab 
+        name: app-release
+        path: bubblewrap/app-release.aab 
