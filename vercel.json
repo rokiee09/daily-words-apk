@@ -26,7 +26,7 @@
   "rewrites": [
     {
       "source": "/manifest.json",
-      "destination": "/manifest.json"
+      "destination": "/public/manifest.json"
     }
   ]
 } 
