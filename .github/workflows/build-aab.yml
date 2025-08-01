@@ -41,9 +41,15 @@ jobs:
         
     - name: Initialize Bubblewrap project (without keystore)
       run: |
-        bubblewrap init --manifest https://daily-words-apk-git-main-burakavcis-projects.vercel.app/manifest.webmanifest --directory ./bubblewrap
+        bubblewrap init --manifest https://daily-words-apk-git-main-burakavcis-projects.vercel.app/manifest.webmanifest --directory ./bubblewrap --skipPwaValidation
         
     - name: Build AAB (debug version)
       run: |
         cd bubblewrap
-        bubblewrap build --target android --skipPwaValidation 
+        bubblewrap build --target android --skipPwaValidation
+        
+    - name: Upload AAB artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug
+        path: bubblewrap/app-debug.aab 
