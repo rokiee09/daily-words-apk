@@ -1,0 +1,23 @@
+{
+  "packageId": "com.dailywords.app",
+  "host": "daily-words-apk.vercel.app",
+  "name": "Daily Words",
+  "launcherName": "DailyWords",
+  "display": "standalone",
+  "themeColor": "#007bff",
+  "navigationColor": "#007bff",
+  "backgroundColor": "#ffffff",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://daily-words-apk.vercel.app/icons/icon-512x512.png",
+  "maskableIconUrl": "https://daily-words-apk.vercel.app/icons/icon-512x512.png",
+  "monochromeIconUrl": "https://daily-words-apk.vercel.app/icons/icon-512x512.png",
+  "shortcuts": [],
+  "webManifestUrl": "https://daily-words-apk.vercel.app/manifest.webmanifest",
+  "versionCode": 2,
+  "versionName": "1.0.2",
+  "signingKey": {
+    "path": "daily-words-keystore.jks",
+    "alias": "dailywords"
+  }
+} 
