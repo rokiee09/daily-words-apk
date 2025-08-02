@@ -3,6 +3,7 @@
   "name": "Daily Words",
   "short_name": "DailyWords",
   "description": "Learn daily English words with examples and pronunciation.",
+  "version": "1.0.1",
   "start_url": "https://daily-words-apk.vercel.app/",
   "scope": "https://daily-words-apk.vercel.app/",
   "scope_extensions": [
