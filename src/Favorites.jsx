@@ -8,9 +8,17 @@ function Favorites() {
   useEffect(() => {
     // Favorileri ve tüm kelimeleri yükle
     const savedFavorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-    setFavorites(savedFavorites);
+    
+    // Tekrarlanan favorileri temizle
+    const uniqueFavorites = [...new Set(savedFavorites)];
+    if (uniqueFavorites.length !== savedFavorites.length) {
+      localStorage.setItem("favorites", JSON.stringify(uniqueFavorites));
+      setFavorites(uniqueFavorites);
+    } else {
+      setFavorites(savedFavorites);
+    }
 
-    fetch("/words.json")
+    fetch("/advanced_words.json")
       .then((res) => res.json())
       .then((data) => {
         setAllWords(data);
@@ -19,9 +27,14 @@ function Favorites() {
   }, []);
 
   function removeFavorite(word) {
+    // Kelimeyi favorilerden çıkar
     const newFavorites = favorites.filter(f => f !== word);
     setFavorites(newFavorites);
     localStorage.setItem("favorites", JSON.stringify(newFavorites));
+    
+    // Stats'ı güncelle
+    const { updateFavoriteCount } = require('./utils/stats');
+    updateFavoriteCount(newFavorites.length);
   }
 
   if (loading) return <div>Yükleniyor...</div>;

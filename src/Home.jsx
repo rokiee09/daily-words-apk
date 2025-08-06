@@ -34,7 +34,7 @@ function Home() {
 
   useEffect(() => {
     setLoading(true);
-    fetch("/words.json")
+    fetch("/advanced_words.json")
       .then((res) => {
         if (!res.ok) throw new Error("Veri alınamadı");
         return res.json();
@@ -71,12 +71,22 @@ function Home() {
   }, [showRepeat, words]);
 
   function toggleFavorite(word) {
-    const newFavorites = favorites.includes(word)
-      ? favorites.filter(f => f !== word)
-      : [...favorites, word];
-    setFavorites(newFavorites);
-    localStorage.setItem("favorites", JSON.stringify(newFavorites));
-    updateFavoriteCount(newFavorites.length);
+    // Eğer kelime zaten favorilerde varsa çıkar, yoksa ekle
+    const isAlreadyFavorite = favorites.includes(word);
+    
+    if (isAlreadyFavorite) {
+      // Favorilerden çıkar
+      const newFavorites = favorites.filter(f => f !== word);
+      setFavorites(newFavorites);
+      localStorage.setItem("favorites", JSON.stringify(newFavorites));
+      updateFavoriteCount(newFavorites.length);
+    } else {
+      // Favorilere ekle (sadece bir kez)
+      const newFavorites = [...favorites, word];
+      setFavorites(newFavorites);
+      localStorage.setItem("favorites", JSON.stringify(newFavorites));
+      updateFavoriteCount(newFavorites.length);
+    }
   }
 
   if (loading) return <div>Yükleniyor...</div>;

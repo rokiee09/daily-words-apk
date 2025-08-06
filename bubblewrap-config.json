@@ -14,8 +14,8 @@
   "monochromeIconUrl": "https://daily-words-apk.vercel.app/icons/icon-512x512.png",
   "shortcuts": [],
   "webManifestUrl": "https://daily-words-apk.vercel.app/manifest.webmanifest",
-  "versionCode": 2,
-  "versionName": "1.0.2",
+  "versionCode": 3,
+  "versionName": "1.0.3",
   "signingKey": {
     "path": "daily-words-keystore.jks",
     "alias": "dailywords"

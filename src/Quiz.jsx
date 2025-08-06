@@ -17,7 +17,7 @@ function Quiz() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/words.json")
+    fetch("/advanced_words.json")
       .then((res) => res.json())
       .then((data) => {
         const daily = getDailyWords(data);
@@ -87,7 +87,8 @@ function Quiz() {
       if (q.type === "tf") {
         isCorrect = ans === "true";
       } else {
-        isCorrect = ans === q.correct;
+        // Büyük/küçük harf duyarlılığını kaldır
+        isCorrect = ans.toLowerCase().trim() === q.correct.toLowerCase().trim();
       }
       let currentDifficultWords = JSON.parse(localStorage.getItem("difficultWords") || "[]");
       if (!isCorrect) {
@@ -108,7 +109,8 @@ function Quiz() {
       const correctCount = finalAnswers.filter((a, i) => {
         const q = questions[i];
         if (q.type === "tf") return a === "true";
-        return a === q.correct;
+        // Büyük/küçük harf duyarlılığını kaldır
+        return a.toLowerCase().trim() === q.correct.toLowerCase().trim();
       }).length;
       recordTestResult(correctCount, 5);
       
@@ -124,7 +126,8 @@ function Quiz() {
         if (q.type === "tf") {
           isCorrect = answer === "true";
         } else {
-          isCorrect = answer === q.correct;
+          // Büyük/küçük harf duyarlılığını kaldır
+          isCorrect = answer.toLowerCase().trim() === q.correct.toLowerCase().trim();
         }
         
         if (isCorrect && !learnedWords.includes(q.word)) {
@@ -188,7 +191,7 @@ function Quiz() {
         <h3>Detaylı Sonuçlar:</h3>
         <ul style={{ listStyle: "none", padding: 0 }}>
           {questions.map((q, i) => {
-            const isCorrect = q.type === "tf" ? answers[i] === "true" : answers[i] === q.correct;
+            const isCorrect = q.type === "tf" ? answers[i] === "true" : answers[i].toLowerCase().trim() === q.correct.toLowerCase().trim();
             return (
               <li key={`result-${i}-${q.word}`} style={{ 
                 marginBottom: 16, 
