@@ -23,35 +23,6 @@ function findBestEnglishVoice() {
   return bestVoice;
 }
 
-// Kelime telaffuzunu iyileştir
-function improvePronunciation(word) {
-  // Bazı yaygın kelimelerin telaffuzunu düzelt
-  const pronunciationMap = {
-    'the': 'ðə',
-    'a': 'ə',
-    'an': 'ən',
-    'and': 'ænd',
-    'or': 'ɔːr',
-    'but': 'bʌt',
-    'in': 'ɪn',
-    'on': 'ɒn',
-    'at': 'æt',
-    'to': 'tuː',
-    'for': 'fɔːr',
-    'of': 'ɒv',
-    'with': 'wɪð',
-    'by': 'baɪ',
-    'from': 'frɒm',
-    'about': 'əˈbaʊt',
-    'through': 'θruː',
-    'during': 'ˈdjʊərɪŋ',
-    'before': 'bɪˈfɔːr',
-    'after': 'ˈɑːftər'
-  };
-  
-  return pronunciationMap[word.toLowerCase()] || word;
-}
-
 // Kelimeyi sesli oku
 export function speakWord(word, lang = 'en-US') {
   if (!isSpeechSupported()) {
@@ -66,7 +37,7 @@ export function speakWord(word, lang = 'en-US') {
   const englishVoice = findBestEnglishVoice();
   
   const utterance = new SpeechSynthesisUtterance(word);
-  utterance.lang = lang;
+  utterance.lang = 'en-US'; // Zorla İngilizce yap
   utterance.rate = 0.7; // Biraz yavaş oku
   utterance.pitch = 1.1; // Hafif yüksek ton
   utterance.volume = 1;
@@ -97,7 +68,7 @@ export function speakSentence(sentence, lang = 'en-US') {
   const englishVoice = findBestEnglishVoice();
   
   const utterance = new SpeechSynthesisUtterance(sentence);
-  utterance.lang = lang;
+  utterance.lang = 'en-US'; // Zorla İngilizce yap
   utterance.rate = 0.6; // Cümle için daha yavaş
   utterance.pitch = 1.05; // Hafif yüksek ton
   utterance.volume = 1;
