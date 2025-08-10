@@ -144,9 +144,9 @@ function Home() {
                     {w.type && <span style={{ color: '#aaa', fontSize: 16 }}>({w.type})</span>}
                   {speechSupported && (
                     <button
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
-                        speakWord(w.word);
+                        await speakWord(w.word);
                       }}
                       style={{
                         background: "none",
@@ -168,10 +168,10 @@ function Home() {
                     {w.sentence_tr && <span style={{ color: '#888', fontSize: 14 }}>{w.sentence_tr}</span>}
                     {speechSupported && w.sentence_en && (
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          speakSentence(w.sentence_en);
-                        }}
+                                              onClick={async (e) => {
+                        e.stopPropagation();
+                        await speakSentence(w.sentence_en);
+                      }}
                         style={{
                           background: "none",
                           border: "none",
@@ -225,9 +225,9 @@ function Home() {
                         {w.type && <span style={{ color: '#aaa', fontSize: 16 }}>({w.type})</span>}
                   {speechSupported && (
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                              speakWord(w.word);
+                                                  onClick={async (e) => {
+                              e.stopPropagation();
+                              await speakWord(w.word);
                             }}
                             style={{
                               background: "none",
@@ -328,7 +328,7 @@ function Home() {
               {selectedWord.type && <span style={{ color: '#aaa', fontSize: 18 }}>({selectedWord.type})</span>}
               {speechSupported && (
                 <button
-                  onClick={() => speakWord(selectedWord.word)}
+                                          onClick={async () => await speakWord(selectedWord.word)}
                   style={{
                     background: "none",
                     border: "none",
