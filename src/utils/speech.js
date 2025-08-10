@@ -37,6 +37,35 @@ async function findBestEnglishVoice() {
   return bestVoice;
 }
 
+// Yaygın kelimelerin telaffuzunu düzelt
+function improvePronunciation(word) {
+  const pronunciationMap = {
+    'the': 'thee',
+    'a': 'ay',
+    'an': 'an',
+    'and': 'and',
+    'or': 'or',
+    'but': 'but',
+    'in': 'in',
+    'on': 'on',
+    'at': 'at',
+    'to': 'too',
+    'for': 'for',
+    'of': 'of',
+    'with': 'with',
+    'by': 'by',
+    'from': 'from',
+    'about': 'about',
+    'through': 'through',
+    'during': 'during',
+    'before': 'before',
+    'after': 'after'
+  };
+  
+  const lowerWord = word.toLowerCase();
+  return pronunciationMap[lowerWord] || word;
+}
+
 // Kelimeyi sesli oku
 export async function speakWord(word, lang = 'en-US') {
   if (!isSpeechSupported()) {
@@ -50,12 +79,13 @@ export async function speakWord(word, lang = 'en-US') {
   // En iyi İngilizce sesi bul
   const englishVoice = await findBestEnglishVoice();
   
-  // Kelimeyi temizle (sadece İngilizce karakterler)
+  // Kelimeyi temizle ve telaffuzunu iyileştir
   const cleanWord = word.replace(/[^a-zA-Z\s]/g, '');
+  const improvedWord = improvePronunciation(cleanWord);
   
-  const utterance = new SpeechSynthesisUtterance(cleanWord);
+  const utterance = new SpeechSynthesisUtterance(improvedWord);
   
-  // Zorla İngilizce ayarları
+  // Zorla İngilizce ayarları - ÇOKLU KONTROL
   utterance.lang = 'en-US';
   utterance.rate = 0.7;
   utterance.pitch = 1.1;
@@ -70,6 +100,27 @@ export async function speakWord(word, lang = 'en-US') {
   // Ses başlamadan önce dili tekrar kontrol et
   utterance.onstart = () => {
     utterance.lang = 'en-US';
+    // Ses başladıktan sonra da dili kontrol et
+    if (utterance.voice) {
+      utterance.voice.lang = 'en-US';
+    }
+  };
+
+  // Ses başlamadan önce son kontrol
+  utterance.onboundary = () => {
+    utterance.lang = 'en-US';
+  };
+
+  // Hata durumunda tekrar dene
+  utterance.onerror = (event) => {
+    console.warn('Speech error, retrying with different settings:', event);
+    // Hata durumunda basit ayarlarla tekrar dene
+    const retryUtterance = new SpeechSynthesisUtterance(improvedWord);
+    retryUtterance.lang = 'en-US';
+    retryUtterance.rate = 0.8;
+    retryUtterance.pitch = 1;
+    retryUtterance.volume = 1;
+    window.speechSynthesis.speak(retryUtterance);
   };
 
   window.speechSynthesis.speak(utterance);
@@ -93,7 +144,7 @@ export async function speakSentence(sentence, lang = 'en-US') {
   
   const utterance = new SpeechSynthesisUtterance(cleanSentence);
   
-  // Zorla İngilizce ayarları
+  // Zorla İngilizce ayarları - ÇOKLU KONTROL
   utterance.lang = 'en-US';
   utterance.rate = 0.6;
   utterance.pitch = 1.05;
@@ -108,6 +159,27 @@ export async function speakSentence(sentence, lang = 'en-US') {
   // Ses başlamadan önce dili tekrar kontrol et
   utterance.onstart = () => {
     utterance.lang = 'en-US';
+    // Ses başladıktan sonra da dili kontrol et
+    if (utterance.voice) {
+      utterance.voice.lang = 'en-US';
+    }
+  };
+
+  // Ses başlamadan önce son kontrol
+  utterance.onboundary = () => {
+    utterance.lang = 'en-US';
+  };
+
+  // Hata durumunda tekrar dene
+  utterance.onerror = (event) => {
+    console.warn('Speech error, retrying with different settings:', event);
+    // Hata durumunda basit ayarlarla tekrar dene
+    const retryUtterance = new SpeechSynthesisUtterance(cleanSentence);
+    retryUtterance.lang = 'en-US';
+    retryUtterance.rate = 0.7;
+    retryUtterance.pitch = 1;
+    retryUtterance.volume = 1;
+    window.speechSynthesis.speak(retryUtterance);
   };
 
   window.speechSynthesis.speak(utterance);
