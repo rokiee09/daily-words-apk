@@ -19,10 +19,11 @@ export function getDailyWords(words, date = new Date()) {
   const [year, month, day] = dateString.split('-').map(Number);
   const seed = year * 10000 + month * 100 + day; // Benzersiz günlük seed
   
-  // Seed bazlı pseudo-random sıralama
+  // Seed bazlı pseudo-random sıralama - daha iyi karıştırma
   const shuffled = [...unlearnedWords].sort((a, b) => {
-    const hashA = (a.word.length * seed + a.word.charCodeAt(0)) % 1000;
-    const hashB = (b.word.length * seed + b.word.charCodeAt(0)) % 1000;
+    // Daha karmaşık hash fonksiyonu
+    const hashA = (a.word.length * seed + a.word.charCodeAt(0) + a.word.charCodeAt(a.word.length - 1)) % 10000;
+    const hashB = (b.word.length * seed + b.word.charCodeAt(0) + b.word.charCodeAt(b.word.length - 1)) % 10000;
     return hashA - hashB;
   });
   
@@ -38,6 +39,13 @@ export function getDailyWords(words, date = new Date()) {
       selectedWords.push(word);
       usedWords.add(word.word);
     }
+  }
+  
+  // Eğer 5 kelime bulunamadıysa, kalan kelimelerden rastgele seç
+  if (selectedWords.length < 5 && unlearnedWords.length > selectedWords.length) {
+    const remainingWords = unlearnedWords.filter(w => !usedWords.has(w.word));
+    const additionalWords = remainingWords.slice(0, 5 - selectedWords.length);
+    selectedWords.push(...additionalWords);
   }
   
   return selectedWords;

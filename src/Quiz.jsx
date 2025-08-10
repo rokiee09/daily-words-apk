@@ -31,7 +31,13 @@ function Quiz() {
         // 2 çoktan seçmeli soru
         const mcQuestions = daily.slice(0, 2).map((w, index) => {
           // Diğer kelimelerin anlamlarını yanlış cevap olarak kullan
-          const availableWrongs = data.filter(x => x.word !== w.word && x.meaning && x.meaning.trim() !== '');
+          // Aynı kelimelerin kullanılmasını önle
+          const availableWrongs = data.filter(x => 
+            x.word !== w.word && 
+            x.meaning && 
+            x.meaning.trim() !== '' &&
+            !daily.some(d => d.word === x.word) // Günlük kelimelerden farklı olmalı
+          );
           const wrongs = shuffle(availableWrongs).slice(0, 3).map(x => x.meaning);
           
           const options = shuffle([w.meaning, ...wrongs]);
