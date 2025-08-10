@@ -3,6 +3,55 @@ export function isSpeechSupported() {
   return 'speechSynthesis' in window;
 }
 
+// En iyi İngilizce sesi bul
+function findBestEnglishVoice() {
+  const voices = window.speechSynthesis.getVoices();
+  
+  // Öncelik sırası: en-US Female > en-GB Female > en-US > en-GB > diğer İngilizce
+  const bestVoice = voices.find(voice => 
+    voice.lang === 'en-US' && voice.name.includes('Female')
+  ) || voices.find(voice => 
+    voice.lang === 'en-GB' && voice.name.includes('Female')
+  ) || voices.find(voice => 
+    voice.lang === 'en-US'
+  ) || voices.find(voice => 
+    voice.lang === 'en-GB'
+  ) || voices.find(voice => 
+    voice.lang.startsWith('en')
+  );
+  
+  return bestVoice;
+}
+
+// Kelime telaffuzunu iyileştir
+function improvePronunciation(word) {
+  // Bazı yaygın kelimelerin telaffuzunu düzelt
+  const pronunciationMap = {
+    'the': 'ðə',
+    'a': 'ə',
+    'an': 'ən',
+    'and': 'ænd',
+    'or': 'ɔːr',
+    'but': 'bʌt',
+    'in': 'ɪn',
+    'on': 'ɒn',
+    'at': 'æt',
+    'to': 'tuː',
+    'for': 'fɔːr',
+    'of': 'ɒv',
+    'with': 'wɪð',
+    'by': 'baɪ',
+    'from': 'frɒm',
+    'about': 'əˈbaʊt',
+    'through': 'θruː',
+    'during': 'ˈdjʊərɪŋ',
+    'before': 'bɪˈfɔːr',
+    'after': 'ˈɑːftər'
+  };
+  
+  return pronunciationMap[word.toLowerCase()] || word;
+}
+
 // Kelimeyi sesli oku
 export function speakWord(word, lang = 'en-US') {
   if (!isSpeechSupported()) {
@@ -13,21 +62,23 @@ export function speakWord(word, lang = 'en-US') {
   // Önceki konuşmayı durdur
   window.speechSynthesis.cancel();
 
+  // En iyi İngilizce sesi bul
+  const englishVoice = findBestEnglishVoice();
+  
   const utterance = new SpeechSynthesisUtterance(word);
   utterance.lang = lang;
-  utterance.rate = 0.8; // Biraz yavaş oku
-  utterance.pitch = 1;
+  utterance.rate = 0.7; // Biraz yavaş oku
+  utterance.pitch = 1.1; // Hafif yüksek ton
   utterance.volume = 1;
 
-  // En iyi sesi seç (kadın sesi tercih et)
-  const voices = window.speechSynthesis.getVoices();
-  const englishVoice = voices.find(voice => 
-    voice.lang.startsWith('en') && voice.name.includes('Female')
-  ) || voices.find(voice => voice.lang.startsWith('en'));
-  
   if (englishVoice) {
     utterance.voice = englishVoice;
+    utterance.lang = englishVoice.lang; // Sesin dilini kullan
   }
+
+  // İngilizce telaffuz için ek ayarlar
+  utterance.rate = 0.7; // Biraz yavaş
+  utterance.pitch = 1.1; // Hafif yüksek ton
 
   window.speechSynthesis.speak(utterance);
 }
@@ -42,21 +93,23 @@ export function speakSentence(sentence, lang = 'en-US') {
   // Önceki konuşmayı durdur
   window.speechSynthesis.cancel();
 
+  // En iyi İngilizce sesi bul
+  const englishVoice = findBestEnglishVoice();
+  
   const utterance = new SpeechSynthesisUtterance(sentence);
   utterance.lang = lang;
-  utterance.rate = 0.7; // Cümle için daha yavaş
-  utterance.pitch = 1;
+  utterance.rate = 0.6; // Cümle için daha yavaş
+  utterance.pitch = 1.05; // Hafif yüksek ton
   utterance.volume = 1;
 
-  // En iyi sesi seç
-  const voices = window.speechSynthesis.getVoices();
-  const englishVoice = voices.find(voice => 
-    voice.lang.startsWith('en') && voice.name.includes('Female')
-  ) || voices.find(voice => voice.lang.startsWith('en'));
-  
   if (englishVoice) {
     utterance.voice = englishVoice;
+    utterance.lang = englishVoice.lang; // Sesin dilini kullan
   }
+
+  // İngilizce telaffuz için ek ayarlar
+  utterance.rate = 0.6; // Cümle için yavaş
+  utterance.pitch = 1.05; // Hafif yüksek ton
 
   window.speechSynthesis.speak(utterance);
 }
