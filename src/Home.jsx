@@ -51,7 +51,8 @@ function Home() {
         checkAdvancedStreakBadges();
       })
       .catch((err) => {
-        setError(err.message);
+        console.error("Veri yükleme hatası:", err);
+        setError("Kelimeler yüklenirken hata oluştu. Lütfen sayfayı yenileyin.");
         setLoading(false);
       });
   }, [today]);
