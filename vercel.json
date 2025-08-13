@@ -3,7 +3,8 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/((?!assets/|.*\\.(js|css|map|png|jpg|jpeg|svg|ico|webp|woff2|txt|json)).*)",
+      "source": "/:path*",
+      "has": [{ "type": "header", "key": "accept", "value": "text/html" }],
       "destination": "/index.html"
     }
   ],
