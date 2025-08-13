@@ -34,7 +34,7 @@ function Home() {
 
   useEffect(() => {
     setLoading(true);
-    fetch("/advanced_words.json")
+    fetch("/words.json")
       .then((res) => {
         if (!res.ok) throw new Error("Veri alınamadı");
         return res.json();
