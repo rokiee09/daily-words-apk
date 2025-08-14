@@ -21,16 +21,22 @@ function waitForVoices() {
 async function findBestEnglishVoice() {
   const voices = await waitForVoices();
   
-  // Öncelik sırası: en-US > en-GB > diğer İngilizce
-  const bestVoice = voices.find(voice => 
-    voice.lang === 'en-US'
-  ) || voices.find(voice => 
-    voice.lang === 'en-GB'
-  ) || voices.find(voice => 
-    voice.lang.startsWith('en')
+  // Sadece en-US sesleri kabul et
+  const usVoices = voices.filter(voice => voice.lang === 'en-US');
+  
+  if (usVoices.length === 0) {
+    console.warn('No en-US voices found, using default');
+    return null;
+  }
+  
+  // Kadın sesi tercih et
+  const femaleVoice = usVoices.find(voice => 
+    voice.name.toLowerCase().includes('female') || 
+    voice.name.toLowerCase().includes('woman') ||
+    voice.name.toLowerCase().includes('girl')
   );
   
-  return bestVoice;
+  return femaleVoice || usVoices[0];
 }
 
 // Kelimeyi sesli oku
@@ -51,15 +57,25 @@ export async function speakWord(word) {
   
   const utterance = new SpeechSynthesisUtterance(cleanWord);
   
-  // Basit ayarlar
+  // Zorla İngilizce yap
   utterance.lang = 'en-US';
-  utterance.rate = 0.8;
-  utterance.pitch = 1;
+  utterance.rate = 0.7;
+  utterance.pitch = 1.1;
   utterance.volume = 1;
 
-  if (englishVoice) {
+  // Sadece en-US sesi kullan
+  if (englishVoice && englishVoice.lang === 'en-US') {
     utterance.voice = englishVoice;
   }
+
+  // Hata durumunda tekrar dene
+  utterance.onerror = (event) => {
+    console.error('Speech error:', event);
+    // Tekrar dene
+    setTimeout(() => {
+      window.speechSynthesis.speak(utterance);
+    }, 100);
+  };
 
   window.speechSynthesis.speak(utterance);
 }
@@ -82,15 +98,25 @@ export async function speakSentence(sentence) {
   
   const utterance = new SpeechSynthesisUtterance(cleanSentence);
   
-  // Basit ayarlar
+  // Zorla İngilizce yap
   utterance.lang = 'en-US';
-  utterance.rate = 0.7;
-  utterance.pitch = 1;
+  utterance.rate = 0.6;
+  utterance.pitch = 1.1;
   utterance.volume = 1;
 
-  if (englishVoice) {
+  // Sadece en-US sesi kullan
+  if (englishVoice && englishVoice.lang === 'en-US') {
     utterance.voice = englishVoice;
   }
+
+  // Hata durumunda tekrar dene
+  utterance.onerror = (event) => {
+    console.error('Speech error:', event);
+    // Tekrar dene
+    setTimeout(() => {
+      window.speechSynthesis.speak(utterance);
+    }, 100);
+  };
 
   window.speechSynthesis.speak(utterance);
 }
