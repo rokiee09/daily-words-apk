@@ -17,26 +17,20 @@ function waitForVoices() {
   });
 }
 
-// En iyi İngilizce sesi bul
-async function findBestEnglishVoice() {
+// En iyi sesi bul (Türkçe sesi İngilizce gibi kullan)
+async function findBestVoice() {
   const voices = await waitForVoices();
   
-  // Sadece en-US sesleri kabul et
+  // Önce en-US sesleri ara
   const usVoices = voices.filter(voice => voice.lang === 'en-US');
-  
-  if (usVoices.length === 0) {
-    console.warn('No en-US voices found, using default');
-    return null;
+  if (usVoices.length > 0) {
+    return usVoices[0];
   }
   
-  // Kadın sesi tercih et
-  const femaleVoice = usVoices.find(voice => 
-    voice.name.toLowerCase().includes('female') || 
-    voice.name.toLowerCase().includes('woman') ||
-    voice.name.toLowerCase().includes('girl')
-  );
-  
-  return femaleVoice || usVoices[0];
+  // en-US yoksa, mevcut sesi kullan ama zorla İngilizce yap
+  const availableVoice = voices[0];
+  console.log('Using available voice:', availableVoice.name, availableVoice.lang);
+  return availableVoice;
 }
 
 // Kelimeyi sesli oku
@@ -49,8 +43,8 @@ export async function speakWord(word) {
   // Önceki konuşmayı durdur
   window.speechSynthesis.cancel();
 
-  // En iyi İngilizce sesi bul
-  const englishVoice = await findBestEnglishVoice();
+  // En iyi sesi bul
+  const voice = await findBestVoice();
   
   // Kelimeyi temizle
   const cleanWord = word.replace(/[^a-zA-Z\s]/g, '');
@@ -59,13 +53,13 @@ export async function speakWord(word) {
   
   // Zorla İngilizce yap
   utterance.lang = 'en-US';
-  utterance.rate = 0.7;
-  utterance.pitch = 1.1;
+  utterance.rate = 0.6;
+  utterance.pitch = 1.2;
   utterance.volume = 1;
 
-  // Sadece en-US sesi kullan
-  if (englishVoice && englishVoice.lang === 'en-US') {
-    utterance.voice = englishVoice;
+  // Ses ayarla
+  if (voice) {
+    utterance.voice = voice;
   }
 
   // Hata durumunda tekrar dene
@@ -90,8 +84,8 @@ export async function speakSentence(sentence) {
   // Önceki konuşmayı durdur
   window.speechSynthesis.cancel();
 
-  // En iyi İngilizce sesi bul
-  const englishVoice = await findBestEnglishVoice();
+  // En iyi sesi bul
+  const voice = await findBestVoice();
   
   // Cümleyi temizle
   const cleanSentence = sentence.replace(/[^a-zA-Z\s.,!?]/g, '');
@@ -100,13 +94,13 @@ export async function speakSentence(sentence) {
   
   // Zorla İngilizce yap
   utterance.lang = 'en-US';
-  utterance.rate = 0.6;
-  utterance.pitch = 1.1;
+  utterance.rate = 0.5;
+  utterance.pitch = 1.2;
   utterance.volume = 1;
 
-  // Sadece en-US sesi kullan
-  if (englishVoice && englishVoice.lang === 'en-US') {
-    utterance.voice = englishVoice;
+  // Ses ayarla
+  if (voice) {
+    utterance.voice = voice;
   }
 
   // Hata durumunda tekrar dene
