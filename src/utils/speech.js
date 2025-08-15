@@ -52,10 +52,10 @@ export async function speakWord(word) {
   
   const utterance = new SpeechSynthesisUtterance(cleanWord);
   
-  // ÇOK AGGRESIF İngilizce ayarları
+  // Doğal İngilizce ayarları
   utterance.lang = 'en-US';
-  utterance.rate = 0.4;  // Çok yavaş
-  utterance.pitch = 1.5;  // Çok yüksek pitch
+  utterance.rate = 0.8;   // Normal hız
+  utterance.pitch = 1.0;   // Normal pitch (tiz değil)
   utterance.volume = 1;
 
   // Ses ayarla
@@ -98,10 +98,10 @@ export async function speakSentence(sentence) {
   
   const utterance = new SpeechSynthesisUtterance(cleanSentence);
   
-  // ÇOK AGGRESIF İngilizce ayarları
+  // Doğal İngilizce ayarları
   utterance.lang = 'en-US';
-  utterance.rate = 0.3;  // Çok yavaş
-  utterance.pitch = 1.5;  // Çok yüksek pitch
+  utterance.rate = 0.7;   // Biraz yavaş (cümle için)
+  utterance.pitch = 1.0;   // Normal pitch (tiz değil)
   utterance.volume = 1;
 
   // Ses ayarla
