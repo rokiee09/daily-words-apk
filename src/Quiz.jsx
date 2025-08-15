@@ -17,7 +17,7 @@ function Quiz() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/advanced_words.json")
+    fetch("/words.json")
       .then((res) => res.json())
       .then((data) => {
         const daily = getDailyWords(data);

@@ -18,10 +18,14 @@ function Favorites() {
       setFavorites(savedFavorites);
     }
 
-    fetch("/advanced_words.json")
+    fetch("/words.json")
       .then((res) => res.json())
       .then((data) => {
         setAllWords(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error loading words:", error);
         setLoading(false);
       });
   }, []);
