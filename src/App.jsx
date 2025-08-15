@@ -9,11 +9,17 @@ import { startReminderTimer } from "./utils/notifications";
 
 function App() {
   const [page, setPage] = useState("home");
+  const [dailyWords, setDailyWords] = useState([]);
 
   useEffect(() => {
     // Hatırlatma zamanlayıcısını başlat
     startReminderTimer();
   }, []);
+
+  const handleTestComplete = (testResult) => {
+    // Test tamamlandığında yapılacak işlemler
+    console.log("Test tamamlandı:", testResult);
+  };
 
   return (
     <div>
@@ -136,8 +142,8 @@ function App() {
         </button>
       </nav>
       
-      {page === "home" && <Home />}
-      {page === "quiz" && <Quiz />}
+      {page === "home" && <Home onDailyWordsChange={setDailyWords} />}
+      {page === "quiz" && <Quiz dailyWords={dailyWords} onTestComplete={handleTestComplete} onClose={() => setPage("home")} />}
       {page === "favoriteQuiz" && <FavoriteQuiz />}
       {page === "favorites" && <Favorites />}
       {page === "stats" && <Stats />}

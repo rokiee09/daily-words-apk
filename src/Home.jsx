@@ -3,7 +3,7 @@ import { getDailyWords } from "./utils/getDailyWords";
 import { recordDailyStudy, updateFavoriteCount, checkStreakBadge, checkFavoriteBadge, checkAdvancedStreakBadges } from "./utils/stats";
 import { speakWord, speakSentence, isSpeechSupported } from "./utils/speech";
 
-function Home() {
+function Home({ onDailyWordsChange }) {
   const [words, setWords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,6 +42,12 @@ function Home() {
       .then((data) => {
         const dailyWords = getDailyWords(data, new Date(today));
         setWords(dailyWords);
+        
+        // Parent component'e daily words'ü bildir
+        if (onDailyWordsChange) {
+          onDailyWordsChange(dailyWords);
+        }
+        
         setLoading(false);
         // Günlük çalışma kaydı
         recordDailyStudy();
@@ -55,7 +61,7 @@ function Home() {
         setError("Kelimeler yüklenirken hata oluştu. Lütfen sayfayı yenileyin.");
         setLoading(false);
       });
-  }, [today]);
+  }, [today, onDailyWordsChange]);
 
   // Bu kısım kaldırıldı - artık kelimeler sadece testte doğru cevaplanınca öğrenilmiş sayılacak
 

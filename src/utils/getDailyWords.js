@@ -27,12 +27,12 @@ export function getDailyWords(words, date = new Date()) {
     return hashA - hashB;
   });
   
-  // İlk 5 kelimeyi al ve tekrar kontrolü yap
+  // İlk 5 kelimeyi al
   const selectedWords = [];
   const usedWords = new Set();
   
   for (const word of shuffled) {
-    if (selectedWords.length >= 5) break;
+    if (selectedWords.length >= 5) break; // 5 kelime
     
     // Eğer bu kelime daha önce seçilmediyse ekle
     if (!usedWords.has(word.word)) {

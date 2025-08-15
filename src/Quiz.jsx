@@ -1,275 +1,355 @@
-import React, { useEffect, useState } from "react";
-import { getDailyWords } from "./utils/getDailyWords";
-import { recordTestResult } from "./utils/stats";
+import React, { useState, useEffect } from 'react';
+import { speakWord, speakSentence, stopSpeaking } from './utils/speech.js';
 
-function shuffle(array) {
-  return array
-    .map((a) => [Math.random(), a])
-    .sort((a, b) => a[0] - b[0])
-    .map((a) => a[1]);
-}
-
-function Quiz() {
+function Quiz({ onClose, dailyWords, onTestComplete }) {
   const [questions, setQuestions] = useState([]);
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState([]);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [score, setScore] = useState(0);
   const [showResult, setShowResult] = useState(false);
-  const [error, setError] = useState("");
+  const [userAnswers, setUserAnswers] = useState({});
+  const [isFavoriteTest, setIsFavoriteTest] = useState(false);
+  const [favoriteWords, setFavoriteWords] = useState([]);
 
   useEffect(() => {
-    fetch("/words.json")
-      .then((res) => res.json())
-      .then((data) => {
-        const daily = getDailyWords(data);
-        
-        // Yeterli kelime kontrolü
-        if (daily.length < 5) {
-          setError("Yeterli kelime bulunamadı. Lütfen daha sonra tekrar deneyin.");
-          return;
-        }
-        
-        // 2 çoktan seçmeli soru
-        const mcQuestions = daily.slice(0, 2).map((w, index) => {
-          // Diğer kelimelerin anlamlarını yanlış cevap olarak kullan
-          // Aynı kelimelerin kullanılmasını önle
-          const availableWrongs = data.filter(x => 
-            x.word !== w.word && 
-            x.meaning && 
-            x.meaning.trim() !== '' &&
-            !daily.some(d => d.word === x.word) // Günlük kelimelerden farklı olmalı
-          );
-          const wrongs = shuffle(availableWrongs).slice(0, 3).map(x => x.meaning);
-          
-          const options = shuffle([w.meaning, ...wrongs]);
-          
-          return {
-            type: "mc",
-            word: w.word,
-            correct: w.meaning,
-            options
-          };
-        });
-
-        // 1 doğru-yanlış sorusu
-        const tfQuestion = {
-          type: "tf",
-          word: daily[2]?.word,
-          sentence_en: daily[2]?.sentence_en,
-          sentence_tr: daily[2]?.sentence_tr,
-          correct: true // Her zaman doğru
-        };
-
-        // 1 eşleştirme sorusu
-        const matchQuestion = {
-          type: "match",
-          word: daily[3]?.word,
-          meaning: daily[3]?.meaning,
-          correct: daily[3]?.meaning
-        };
-
-        // 1 boşluk doldurma sorusu
-        const fillQuestion = {
-          type: "fill",
-          word: daily[4]?.word,
-          sentence_en: daily[4]?.sentence_en?.replace(new RegExp(daily[4]?.word, "i"), "_____"),
-          sentence_tr: daily[4]?.sentence_tr?.replace(new RegExp(daily[4]?.word, "i"), "_____"),
-          correct: daily[4]?.word
-        };
-
-        setQuestions([...mcQuestions, tfQuestion, matchQuestion, fillQuestion]);
-      })
-      .catch(err => {
-        setError("Kelime listesi yüklenirken hata oluştu.");
-        console.error(err);
-      });
+    // Favori kelimeleri kontrol et
+    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+    if (favorites.length >= 5) {
+      setIsFavoriteTest(true);
+      setFavoriteWords(favorites);
+      generateFavoriteQuestions(favorites);
+    } else {
+      generateQuestions();
+    }
   }, []);
 
-  function handleAnswer(ans) {
-    setAnswers([...answers, ans]);
-    // Yanlış cevaplanan kelimeyi tekrar listesine ekle
-    if (questions[step]) {
-      const q = questions[step];
-      let isCorrect = false;
-      if (q.type === "tf") {
-        isCorrect = ans === "true";
-      } else {
-        // Büyük/küçük harf duyarlılığını kaldır
-        isCorrect = ans.toLowerCase().trim() === q.correct.toLowerCase().trim();
+  const generateFavoriteQuestions = (favorites) => {
+    const shuffled = [...favorites].sort(() => Math.random() - 0.5);
+    const selected = shuffled.slice(0, 5);
+    
+    const questions = [
+      // 2 çoktan seçmeli (anlam)
+      ...selected.slice(0, 2).map((word, index) => ({
+        type: "mc",
+        word: word.word,
+        correct: word.meaning,
+        options: shuffle([word.meaning, "farklı anlam", "benzer kelime", "bilinmiyor"])
+      })),
+      // 1 doğru/yanlış (telaffuz)
+      {
+        type: "tf",
+        word: selected[2].word,
+        correct: true,
+        question: `${selected[2].word} kelimesinin telaffuzu doğru mu?`
+      },
+      // 1 eşleştirme (yazım)
+      {
+        type: "match",
+        word: selected[3].word,
+        correct: selected[3].word,
+        question: `${selected[3].word} kelimesini yazın`
+      },
+      // 1 boşluk doldurma (cümle)
+      {
+        type: "fill",
+        word: selected[4].word,
+        correct: selected[4].word,
+        sentence: selected[4].sentence_en.replace(selected[4].word, "_____")
       }
-      let currentDifficultWords = JSON.parse(localStorage.getItem("difficultWords") || "[]");
-      if (!isCorrect) {
-        // Yanlışsa ekle (zaten yoksa)
-        if (!currentDifficultWords.some(w => w.word === q.word)) {
-          currentDifficultWords.push(q);
-        }
-      } else {
-        // Doğruysa çıkar
-        currentDifficultWords = currentDifficultWords.filter(w => w.word !== q.word);
-      }
-      localStorage.setItem("difficultWords", JSON.stringify(currentDifficultWords));
-    }
-    if (step === 4) {
-      setShowResult(true);
-      // Test sonucunu istatistiklere kaydet
-      const finalAnswers = [...answers, ans];
-      const correctCount = finalAnswers.filter((a, i) => {
-        const q = questions[i];
-        if (q.type === "tf") return a === "true";
-        // Büyük/küçük harf duyarlılığını kaldır
-        return a.toLowerCase().trim() === q.correct.toLowerCase().trim();
-      }).length;
-      recordTestResult(correctCount, 5);
-      
-      // Doğru cevaplanan kelimeleri öğrenilmiş olarak işaretle
-      let learnedWords = [];
-      try {
-        learnedWords = JSON.parse(localStorage.getItem("learnedWords") || "[]");
-      } catch (e) { learnedWords = []; }
-      
-      finalAnswers.forEach((answer, index) => {
-        const q = questions[index];
-        let isCorrect = false;
-        if (q.type === "tf") {
-          isCorrect = answer === "true";
+    ];
+    
+    setQuestions(questions);
+  };
+
+  const generateQuestions = () => {
+    if (!dailyWords || dailyWords.length === 0) return;
+    
+    const data = dailyWords;
+    const daily = data.slice(0, 5); // 5 kelime
+    
+    const questions = [
+      // 2 çoktan seçmeli
+      ...daily.slice(0, 2).map((w, index) => {
+        const availableWrongs = data.filter(x => 
+          x.word !== w.word && 
+          x.meaning && 
+          x.meaning.trim() !== '' &&
+          !daily.some(d => d.word === x.word)
+        );
+        
+        let wrongs = [];
+        if (availableWrongs.length >= 3) {
+          wrongs = shuffle(availableWrongs).slice(0, 3).map(x => x.meaning);
         } else {
-          // Büyük/küçük harf duyarlılığını kaldır
-          isCorrect = answer.toLowerCase().trim() === q.correct.toLowerCase().trim();
+          wrongs = ["bilinmiyor", "farklı anlam", "benzer kelime"];
         }
         
-        if (isCorrect && !learnedWords.includes(q.word)) {
-          learnedWords.push(q.word);
-        }
-      });
-      
-      localStorage.setItem("learnedWords", JSON.stringify(learnedWords));
-    } else {
-      setStep(step + 1);
-    }
-  }
+        const options = shuffle([w.meaning, ...wrongs]);
+        
+        return {
+          type: "mc",
+          word: w.word,
+          correct: w.meaning,
+          options
+        };
+      }),
+      // 1 doğru/yanlış
+      {
+        type: "tf",
+        word: daily[2].word,
+        correct: Math.random() > 0.5,
+        question: `${daily[2].word} kelimesinin anlamı "${daily[2].meaning}" mi?`
+      },
+      // 1 eşleştirme
+      {
+        type: "match",
+        word: daily[3].word,
+        correct: daily[3].word,
+        question: `${daily[3].word} kelimesini yazın`
+      },
+      // 1 boşluk doldurma
+      {
+        type: "fill",
+        word: daily[4].word,
+        correct: daily[4].word,
+        sentence: daily[4].sentence_en.replace(daily[4].word, "_____")
+      }
+    ];
+    
+    setQuestions(questions);
+  };
 
-  if (error) {
+  const shuffle = (array) => {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+  };
+
+  const handleAnswer = (answer) => {
+    const currentQ = questions[currentStep];
+    let isCorrect = false;
+    
+    if (currentQ.type === "mc") {
+      isCorrect = answer === currentQ.correct;
+    } else if (currentQ.type === "tf") {
+      isCorrect = answer === currentQ.correct;
+    } else if (currentQ.type === "match") {
+      isCorrect = answer.toLowerCase().trim() === currentQ.correct.toLowerCase().trim();
+    } else if (currentQ.type === "fill") {
+      isCorrect = answer.toLowerCase().trim() === currentQ.correct.toLowerCase().trim();
+    }
+    
+    if (isCorrect) {
+      setScore(score + 1);
+    }
+    
+    setUserAnswers({ ...userAnswers, [currentStep]: answer });
+    
+    if (currentStep < questions.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      finishTest();
+    }
+  };
+
+  const finishTest = () => {
+    setShowResult(true);
+    
+    // Test sonucunu kaydet
+    const testResult = {
+      date: new Date().toISOString(),
+      score: score + (userAnswers[currentStep] ? 1 : 0),
+      total: questions.length,
+      isFavoriteTest
+    };
+    
+    // Test sonuçlarını localStorage'a kaydet
+    const testResults = JSON.parse(localStorage.getItem("testResults") || "[]");
+    testResults.push(testResult);
+    localStorage.setItem("testResults", JSON.stringify(testResults));
+    
+    // Eğer günlük test başarılıysa ve favori test değilse, kelimeleri öğrenildi olarak işaretle
+    if (!isFavoriteTest && testResult.score >= 4) {
+      const learnedWords = JSON.parse(localStorage.getItem("learnedWords") || "[]");
+      const newLearned = dailyWords.map(w => w.word).filter(w => !learnedWords.includes(w));
+      localStorage.setItem("learnedWords", JSON.stringify([...learnedWords, ...newLearned]));
+    }
+    
+    if (onTestComplete) {
+      onTestComplete(testResult);
+    }
+  };
+
+  const handleNextDay = () => {
+    // Yeni gün için kelimeleri sıfırla
+    localStorage.removeItem("dailyWords");
+    onClose();
+  };
+
+  const handleRetry = () => {
+    setCurrentStep(0);
+    setScore(0);
+    setShowResult(false);
+    setUserAnswers({});
+    
+    if (isFavoriteTest) {
+      generateFavoriteQuestions(favoriteWords);
+    } else {
+      generateQuestions();
+    }
+  };
+
+  if (questions.length === 0) {
     return (
-      <div style={{ maxWidth: 500, margin: "2rem auto", padding: 16, textAlign: "center" }}>
-        <div style={{ color: "#dc3545", fontSize: "1.2rem", marginBottom: "16px" }}>
-          ⚠️ {error}
-        </div>
-        <button 
-          onClick={() => window.location.reload()}
-          style={{
-            background: "#007bff",
-            color: "white",
-            border: "none",
-            padding: "12px 24px",
-            borderRadius: "8px",
-            fontSize: "16px",
-            cursor: "pointer"
-          }}
-        >
-          🔄 Tekrar Dene
-        </button>
+      <div style={{ padding: "20px", textAlign: "center" }}>
+        <div>Kelimeler yükleniyor...</div>
       </div>
     );
   }
 
-  if (!questions.length) return <div>Yükleniyor...</div>;
   if (showResult) {
-    const correctCount = answers.filter((a, i) => {
-      const q = questions[i];
-      if (q.type === "tf") return a === "true";
-      return a === q.correct;
-    }).length;
+    const finalScore = score + (userAnswers[currentStep] ? 1 : 0);
+    const percentage = Math.round((finalScore / questions.length) * 100);
+    const isPassed = finalScore >= 4;
     
     return (
-      <div style={{ maxWidth: 500, margin: "2rem auto", padding: 16 }}>
-        <h2>🎯 Test Sonuçları</h2>
-        <div style={{
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          color: "white",
-          padding: "24px",
-          borderRadius: "12px",
-          textAlign: "center",
-          marginBottom: "20px"
-        }}>
-          <div style={{ fontSize: "3rem", fontWeight: "bold" }}>{correctCount}/5</div>
-          <div style={{ fontSize: "1.5rem" }}>Başarı: %{Math.round((correctCount / 5) * 100)}</div>
+      <div style={{ padding: "20px", textAlign: "center" }}>
+        <h2>Test Tamamlandı!</h2>
+        <div style={{ fontSize: "2rem", margin: "20px 0", color: isPassed ? "#28a745" : "#dc3545" }}>
+          {finalScore}/{questions.length} ({percentage}%)
         </div>
         
-        <h3>Detaylı Sonuçlar:</h3>
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {questions.map((q, i) => {
-            const isCorrect = q.type === "tf" ? answers[i] === "true" : answers[i].toLowerCase().trim() === q.correct.toLowerCase().trim();
-            return (
-              <li key={`result-${i}-${q.word}`} style={{ 
-                marginBottom: 16, 
-                padding: "12px", 
-                border: `2px solid ${isCorrect ? "#28a745" : "#dc3545"}`,
+        {isPassed ? (
+          <div style={{ color: "#28a745", marginBottom: "20px" }}>
+            {isFavoriteTest ? "Favori test başarılı!" : "Tebrikler! Günlük kelimeleri öğrendiniz!"}
+          </div>
+        ) : (
+          <div style={{ color: "#dc3545", marginBottom: "20px" }}>
+            {isFavoriteTest ? "Favori test başarısız. Tekrar deneyin!" : "Daha fazla çalışmanız gerekiyor."}
+          </div>
+        )}
+        
+        <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
+          <button 
+            onClick={handleRetry}
+            style={{
+              padding: "12px 24px",
+              fontSize: "16px",
+              border: "none",
+              borderRadius: "8px",
+              background: "#007bff",
+              color: "white",
+              cursor: "pointer"
+            }}
+          >
+            Tekrar Dene
+          </button>
+          
+          {!isFavoriteTest && isPassed && (
+            <button 
+              onClick={handleNextDay}
+              style={{
+                padding: "12px 24px",
+                fontSize: "16px",
+                border: "none",
                 borderRadius: "8px",
-                background: isCorrect ? "#d4edda" : "#f8d7da",
-                color: "#222"
-              }}>
-                <div style={{ fontWeight: "bold", marginBottom: "8px" }}>
-                  Soru {i + 1}: {q.type === "mc" ? "Çoktan Seçmeli" : 
-                                q.type === "tf" ? "Doğru/Yanlış" :
-                                q.type === "match" ? "Eşleştirme" : "Boşluk Doldurma"}
-                </div>
-                <div style={{ marginBottom: "8px" }}>
-                  {q.type === "mc" && <span><b>{q.word}</b> kelimesinin anlamı nedir?</span>}
-                  {q.type === "tf" && <span><b>{q.word}</b> kelimesi bu cümlede doğru kullanılmış mı?</span>}
-                  {q.type === "match" && <span><b>{q.word}</b> kelimesinin anlamını eşleştir</span>}
-                  {q.type === "fill" && <span>Cümlede boşluğu doldur: <i>{q.sentence_en}</i></span>}
-                </div>
-                <div style={{ color: isCorrect ? "#155724" : "#721c24" }}>
-                  <strong>Senin cevabın:</strong> {answers[i]}<br />
-                  <strong>Doğru cevap:</strong> {q.type === "tf" ? "Doğru" : q.correct}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-        <button 
-          onClick={() => { setStep(0); setAnswers([]); setShowResult(false); }}
-          style={{
-            background: "#007bff",
-            color: "white",
-            border: "none",
-            padding: "12px 24px",
-            borderRadius: "8px",
-            fontSize: "16px",
-            cursor: "pointer",
-            marginTop: "20px"
-          }}
-        >
-          🔄 Tekrar Dene
-        </button>
+                background: "#28a745",
+                color: "white",
+                cursor: "pointer"
+              }}
+            >
+              Yeni Gün
+            </button>
+          )}
+          
+          <button 
+            onClick={onClose}
+            style={{
+              padding: "12px 24px",
+              fontSize: "16px",
+              border: "none",
+              borderRadius: "8px",
+              background: "#6c757d",
+              color: "white",
+              cursor: "pointer"
+            }}
+          >
+            Kapat
+          </button>
+        </div>
       </div>
     );
   }
 
-  const q = questions[step];
+  const currentQ = questions[currentStep];
+
   return (
-    <div style={{ maxWidth: 500, margin: "2rem auto", padding: 16 }}>
-      <h2>🎯 Mini Test ({step + 1}/5)</h2>
+    <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <h2>{isFavoriteTest ? "Favori Test" : "Günlük Test"}</h2>
+        <div style={{ fontSize: "1.2rem" }}>
+          {currentStep + 1}/{questions.length}
+        </div>
+      </div>
       
-      {q.type === "mc" && (
+      <div style={{ marginBottom: "20px" }}>
+        <div style={{ fontSize: "1.1rem", marginBottom: "10px" }}>
+          Skor: {score}
+        </div>
+        <div style={{ 
+          width: "100%", 
+          height: "8px", 
+          background: "#e9ecef", 
+          borderRadius: "4px",
+          overflow: "hidden"
+        }}>
+          <div style={{ 
+            width: `${((currentStep + 1) / questions.length) * 100}%`, 
+            height: "100%", 
+            background: "#007bff",
+            transition: "width 0.3s ease"
+          }}></div>
+        </div>
+      </div>
+
+      {/* Çoktan Seçmeli Soru */}
+      {currentQ.type === "mc" && (
         <div>
           <div style={{ fontSize: "1.2rem", marginBottom: "20px", color: "#111" }}>
-            <b>{q.word}</b> kelimesinin anlamı nedir?
+            <b>{currentQ.word}</b> kelimesinin anlamı nedir?
+            <button 
+              onClick={() => speakWord(currentQ.word)}
+              style={{
+                marginLeft: "10px",
+                padding: "8px 12px",
+                border: "none",
+                borderRadius: "4px",
+                background: "#007bff",
+                color: "white",
+                cursor: "pointer"
+              }}
+            >
+              🔊 Telaffuz
+            </button>
           </div>
           <div style={{ display: "grid", gap: "12px" }}>
-            {q.options.map((opt, index) => (
+            {currentQ.options.map((opt, index) => (
               <button 
-                key={`mc-${step}-${index}-${opt}`}
+                key={`mc-${currentStep}-${index}-${opt}`}
                 onClick={() => handleAnswer(opt)}
                 style={{
                   padding: "16px",
                   fontSize: "16px",
                   border: "2px solid #ddd",
                   borderRadius: "8px",
-                  background: "white",
+                  background: "#ffffff",
                   cursor: "pointer",
                   transition: "all 0.3s ease",
                   textAlign: "left",
-                  color: "#111"
+                  color: "#000000",
+                  fontWeight: "500"
                 }}
                 onMouseOver={(e) => e.target.style.borderColor = "#007bff"}
                 onMouseOut={(e) => e.target.style.borderColor = "#ddd"}
@@ -281,56 +361,56 @@ function Quiz() {
         </div>
       )}
 
-      {q.type === "tf" && (
+      {/* Doğru/Yanlış Soru */}
+      {currentQ.type === "tf" && (
         <div>
-          <div style={{ fontSize: "1.2rem", marginBottom: "16px", color: "#111" }}>
-            <b>{q.word}</b> kelimesi bu cümlede doğru kullanılmış mı?
+          <div style={{ fontSize: "1.2rem", marginBottom: "20px", color: "#111" }}>
+            {currentQ.question}
           </div>
-          <div style={{ 
-            background: "#f8f9fa", 
-            padding: "16px", 
-            borderRadius: "8px", 
-            marginBottom: "20px",
-            fontStyle: "italic",
-            color: "#111"
-          }}>
-            <i>{q.sentence_en}</i><br />
-            <span style={{ color: '#888', fontSize: 14 }}>{q.sentence_tr}</span>
-          </div>
-          <div style={{ display: "flex", gap: "16px" }}>
+          <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
             <button 
-              onClick={() => handleAnswer("true")}
+              onClick={() => handleAnswer(true)}
               style={{
-                flex: 1,
-                padding: "16px",
-                fontSize: "16px",
+                padding: "16px 32px",
+                fontSize: "18px",
                 border: "2px solid #28a745",
                 borderRadius: "8px",
-                background: "white",
+                background: "#ffffff",
                 color: "#28a745",
                 cursor: "pointer",
-                transition: "all 0.3s ease"
+                fontWeight: "500"
               }}
-              onMouseOver={(e) => e.target.style.background = "#28a745"}
-              onMouseOut={(e) => e.target.style.background = "white"}
+              onMouseOver={(e) => {
+                e.target.style.background = "#28a745";
+                e.target.style.color = "white";
+              }}
+              onMouseOut={(e) => {
+                e.target.style.background = "#ffffff";
+                e.target.style.color = "#28a745";
+              }}
             >
               ✅ Doğru
             </button>
             <button 
-              onClick={() => handleAnswer("false")}
+              onClick={() => handleAnswer(false)}
               style={{
-                flex: 1,
-                padding: "16px",
-                fontSize: "16px",
-                border: "2px solid #dc3545",
+                padding: "16px 32px",
+                fontSize: "18px",
+                border: "2px solid "#dc3545",
                 borderRadius: "8px",
-                background: "white",
+                background: "#ffffff",
                 color: "#dc3545",
                 cursor: "pointer",
-                transition: "all 0.3s ease"
+                fontWeight: "500"
               }}
-              onMouseOver={(e) => e.target.style.background = "#dc3545"}
-              onMouseOut={(e) => e.target.style.background = "white"}
+              onMouseOver={(e) => {
+                e.target.style.background = "#dc3545";
+                e.target.style.color = "white";
+              }}
+              onMouseOut={(e) => {
+                e.target.style.background = "#ffffff";
+                e.target.style.color = "#dc3545";
+              }}
             >
               ❌ Yanlış
             </button>
@@ -338,101 +418,135 @@ function Quiz() {
         </div>
       )}
 
-      {q.type === "match" && (
+      {/* Eşleştirme Soru */}
+      {currentQ.type === "match" && (
         <div>
-          <div style={{ fontSize: "1.2rem", marginBottom: "16px", color: "#111" }}>
-            <b>{q.word}</b> kelimesinin anlamını eşleştir
+          <div style={{ fontSize: "1.2rem", marginBottom: "20px", color: "#111" }}>
+            {currentQ.question}
+            <button 
+              onClick={() => speakWord(currentQ.word)}
+              style={{
+                marginLeft: "10px",
+                padding: "8px 12px",
+                border: "none",
+                borderRadius: "4px",
+                background: "#007bff",
+                color: "white",
+                cursor: "pointer"
+              }}
+            >
+              🔊 Telaffuz
+            </button>
           </div>
-          <input
-            type="text"
-            onKeyDown={e => {
-              if (e.key === "Enter") handleAnswer(e.target.value.trim());
+          <div style={{ marginBottom: "20px" }}>
+            <input
+              type="text"
+              placeholder="Kelimeyi yazın..."
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleAnswer(e.target.value);
+                }
+              }}
+              style={{
+                width: "100%",
+                padding: "16px",
+                fontSize: "18px",
+                border: "2px solid #ddd",
+                borderRadius: "8px",
+                background: "#ffffff",
+                color: "#000000",
+                fontWeight: "500"
+              }}
+            />
+          </div>
+          <button 
+            onClick={() => {
+              const input = document.querySelector('input');
+              if (input) handleAnswer(input.value);
             }}
-            placeholder="Anlamını yaz..."
             style={{
               width: "100%",
               padding: "16px",
-              fontSize: "16px",
-              border: "2px solid #ddd",
+              fontSize: "18px",
+              border: "none",
               borderRadius: "8px",
-              marginBottom: "12px",
-              color: "#111"
-            }}
-            autoFocus
-          />
-          <button 
-            onClick={e => {
-              const input = e.target.previousSibling;
-              if (input && input.value) handleAnswer(input.value.trim());
-            }}
-            style={{
               background: "#007bff",
               color: "white",
-              border: "none",
-              padding: "12px 24px",
-              borderRadius: "8px",
-              fontSize: "16px",
               cursor: "pointer"
             }}
           >
-            Cevapla
+            Cevabı Gönder
           </button>
         </div>
       )}
 
-      {q.type === "fill" && (
+      {/* Boşluk Doldurma Soru */}
+      {currentQ.type === "fill" && (
         <div>
-          <div style={{ fontSize: "1.2rem", marginBottom: "16px", color: "#111" }}>
-            Cümlede boşluğu doldur:
+          <div style={{ fontSize: "1.2rem", marginBottom: "20px", color: "#111" }}>
+            Boşluğu doldurun:
           </div>
-          <div style={{ 
-            background: "#f8f9fa", 
-            padding: "16px", 
-            borderRadius: "8px", 
-            marginBottom: "20px",
-            fontStyle: "italic",
-            fontSize: "1.1rem",
-            color: "#111"
-          }}>
-            <i>{q.sentence_en}</i><br />
-            <span style={{ color: '#888', fontSize: 14 }}>{q.sentence_tr}</span>
+          <div style={{ fontSize: "1.1rem", marginBottom: "20px", color: "#333", fontStyle: "italic" }}>
+            {currentQ.sentence}
           </div>
-          <input
-            type="text"
-            onKeyDown={e => {
-              if (e.key === "Enter") handleAnswer(e.target.value.trim());
+          <div style={{ marginBottom: "20px" }}>
+            <input
+              type="text"
+              placeholder="Eksik kelimeyi yazın..."
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleAnswer(e.target.value);
+                }
+              }}
+              style={{
+                width: "100%",
+                padding: "16px",
+                fontSize: "18px",
+                border: "2px solid #ddd",
+                borderRadius: "8px",
+                background: "#ffffff",
+                color: "#000000",
+                fontWeight: "500"
+              }}
+            />
+          </div>
+          <button 
+            onClick={() => {
+              const input = document.querySelector('input');
+              if (input) handleAnswer(input.value);
             }}
-            placeholder="Kelimeyi yaz..."
             style={{
               width: "100%",
               padding: "16px",
-              fontSize: "16px",
-              border: "2px solid #ddd",
+              fontSize: "18px",
+              border: "none",
               borderRadius: "8px",
-              marginBottom: "12px",
-              color: "#111"
-            }}
-            autoFocus
-          />
-          <button 
-            onClick={e => {
-              const input = e.target.previousSibling;
-              if (input && input.value) handleAnswer(input.value.trim());
-            }}
-            style={{
               background: "#007bff",
               color: "white",
-              border: "none",
-              padding: "12px 24px",
-              borderRadius: "8px",
-              fontSize: "16px",
               cursor: "pointer"
             }}
           >
-            Cevapla
+            Cevabı Gönder
           </button>
         </div>
       )}
+
+      <div style={{ marginTop: "30px", textAlign: "center" }}>
+        <button 
+          onClick={onClose}
+          style={{
+            padding: "12px 24px",
+            fontSize: "16px",
+            border: "none",
+            borderRadius: "8px",
+            background: "#6c757d",
+            color: "white",
+            cursor: "pointer"
+          }}
+        >
+          Testi İptal Et
+        </button>
+      </div>
     </div>
   );
 }
