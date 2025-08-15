@@ -23,40 +23,50 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
   }, []);
 
   const generateFavoriteQuestions = (favorites) => {
+    console.log("Favori kelimeler:", favorites); // Debug
     const shuffled = [...favorites].sort(() => Math.random() - 0.5);
     const selected = shuffled.slice(0, 5);
+    console.log("Seçilen kelimeler:", selected); // Debug
     
     const questions = [
-      // 2 çoktan seçmeli (anlam)
-      ...selected.slice(0, 2).map((word, index) => ({
-        type: "mc",
-        word: word.word,
-        correct: word.meaning,
-        options: shuffle([word.meaning, "farklı anlam", "benzer kelime", "bilinmiyor"])
-      })),
-      // 1 doğru/yanlış (telaffuz)
+      // 1 yazım sorusu (eşleştirme)
+      {
+        type: "match",
+        word: selected[0].word,
+        correct: selected[0].word,
+        question: `${selected[0].word} kelimesini yazın`
+      },
+      // 1 telaffuz sorusu (doğru/yanlış)
       {
         type: "tf",
-        word: selected[2].word,
+        word: selected[1].word,
         correct: true,
-        question: `${selected[2].word} kelimesinin telaffuzu doğru mu?`
+        question: `${selected[1].word} kelimesinin telaffuzu doğru mu?`
       },
-      // 1 eşleştirme (yazım)
+      // 1 cümle tamamlama (boşluk doldurma)
+      {
+        type: "fill",
+        word: selected[2].word,
+        correct: selected[2].word,
+        sentence: selected[2].sentence_en.replace(selected[2].word, "_____")
+      },
+      // 1 yazım kontrolü (eşleştirme)
       {
         type: "match",
         word: selected[3].word,
         correct: selected[3].word,
         question: `${selected[3].word} kelimesini yazın`
       },
-      // 1 boşluk doldurma (cümle)
+      // 1 telaffuz kontrolü (doğru/yanlış)
       {
-        type: "fill",
+        type: "tf",
         word: selected[4].word,
-        correct: selected[4].word,
-        sentence: selected[4].sentence_en.replace(selected[4].word, "_____")
+        correct: true,
+        question: `${selected[4].word} kelimesinin telaffuzu doğru mu?`
       }
     ];
     
+    console.log("Oluşturulan sorular:", questions); // Debug
     setQuestions(questions);
   };
 
@@ -67,7 +77,7 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
     const daily = data.slice(0, 5); // 5 kelime
     
     const questions = [
-      // 2 çoktan seçmeli
+      // 2 çoktan seçmeli (anlam)
       ...daily.slice(0, 2).map((w, index) => {
         const availableWrongs = data.filter(x => 
           x.word !== w.word && 
@@ -92,21 +102,21 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
           options
         };
       }),
-      // 1 doğru/yanlış
+      // 1 doğru/yanlış (anlam kontrolü)
       {
         type: "tf",
         word: daily[2].word,
         correct: Math.random() > 0.5,
         question: `${daily[2].word} kelimesinin anlamı "${daily[2].meaning}" mi?`
       },
-      // 1 eşleştirme
+      // 1 eşleştirme (anlam)
       {
         type: "match",
         word: daily[3].word,
-        correct: daily[3].word,
-        question: `${daily[3].word} kelimesini yazın`
+        correct: daily[3].meaning,
+        question: `${daily[3].word} kelimesinin anlamını yazın`
       },
-      // 1 boşluk doldurma
+      // 1 boşluk doldurma (cümle)
       {
         type: "fill",
         word: daily[4].word,
@@ -162,7 +172,8 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
       date: new Date().toISOString(),
       score: score + (userAnswers[currentStep] ? 1 : 0),
       total: questions.length,
-      isFavoriteTest
+      isFavoriteTest,
+      testType: isFavoriteTest ? "favorite" : "daily"
     };
     
     // Test sonuçlarını localStorage'a kaydet
@@ -349,10 +360,17 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
                   transition: "all 0.3s ease",
                   textAlign: "left",
                   color: "#000000",
-                  fontWeight: "500"
+                  fontWeight: "500",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
                 }}
-                onMouseOver={(e) => e.target.style.borderColor = "#007bff"}
-                onMouseOut={(e) => e.target.style.borderColor = "#ddd"}
+                onMouseOver={(e) => {
+                  e.target.style.borderColor = "#007bff";
+                  e.target.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.borderColor = "#ddd";
+                  e.target.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                }}
               >
                 {opt}
               </button>
@@ -396,7 +414,7 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
               style={{
                 padding: "16px 32px",
                 fontSize: "18px",
-                border: "2px solid "#dc3545",
+                border: "2px solid #dc3545",
                 borderRadius: "8px",
                 background: "#ffffff",
                 color: "#dc3545",
