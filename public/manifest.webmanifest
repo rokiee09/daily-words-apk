@@ -4,11 +4,11 @@
   "short_name": "DailyWords",
   "description": "Learn daily English words with examples and pronunciation.",
   "version": "1.0.3",
-  "start_url": "https://daily-words-apk.vercel.app/",
-  "scope": "https://daily-words-apk.vercel.app/",
+  "start_url": "https://daily-words-lovat.vercel.app/",
+  "scope": "https://daily-words-lovat.vercel.app/",
   "scope_extensions": [
     {
-      "origin": "https://daily-words-apk.vercel.app"
+      "origin": "https://daily-words-lovat.vercel.app"
     }
   ],
   "display": "standalone",

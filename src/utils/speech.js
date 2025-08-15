@@ -17,17 +17,18 @@ function waitForVoices() {
   });
 }
 
-// En iyi sesi bul (Türkçe sesi İngilizce gibi kullan)
+// En iyi sesi bul
 async function findBestVoice() {
   const voices = await waitForVoices();
   
   // Önce en-US sesleri ara
   const usVoices = voices.filter(voice => voice.lang === 'en-US');
   if (usVoices.length > 0) {
+    console.log('Found en-US voice:', usVoices[0].name);
     return usVoices[0];
   }
   
-  // en-US yoksa, mevcut sesi kullan ama zorla İngilizce yap
+  // en-US yoksa, mevcut sesi kullan
   const availableVoice = voices[0];
   console.log('Using available voice:', availableVoice.name, availableVoice.lang);
   return availableVoice;
@@ -51,16 +52,21 @@ export async function speakWord(word) {
   
   const utterance = new SpeechSynthesisUtterance(cleanWord);
   
-  // Zorla İngilizce yap
+  // ÇOK AGGRESIF İngilizce ayarları
   utterance.lang = 'en-US';
-  utterance.rate = 0.6;
-  utterance.pitch = 1.2;
+  utterance.rate = 0.4;  // Çok yavaş
+  utterance.pitch = 1.5;  // Çok yüksek pitch
   utterance.volume = 1;
 
   // Ses ayarla
   if (voice) {
     utterance.voice = voice;
   }
+
+  // Ses başlamadan önce
+  utterance.onstart = () => {
+    console.log('Speech started with lang:', utterance.lang);
+  };
 
   // Hata durumunda tekrar dene
   utterance.onerror = (event) => {
@@ -92,16 +98,21 @@ export async function speakSentence(sentence) {
   
   const utterance = new SpeechSynthesisUtterance(cleanSentence);
   
-  // Zorla İngilizce yap
+  // ÇOK AGGRESIF İngilizce ayarları
   utterance.lang = 'en-US';
-  utterance.rate = 0.5;
-  utterance.pitch = 1.2;
+  utterance.rate = 0.3;  // Çok yavaş
+  utterance.pitch = 1.5;  // Çok yüksek pitch
   utterance.volume = 1;
 
   // Ses ayarla
   if (voice) {
     utterance.voice = voice;
   }
+
+  // Ses başlamadan önce
+  utterance.onstart = () => {
+    console.log('Speech started with lang:', utterance.lang);
+  };
 
   // Hata durumunda tekrar dene
   utterance.onerror = (event) => {

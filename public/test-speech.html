@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Test</title>
+</head>
+<body>
+    <h1>Speech API Test</h1>
+    <button onclick="testVoices()">Mevcut Sesleri Göster</button>
+    <button onclick="testEnglish()">İngilizce Test Et</button>
+    <div id="output"></div>
+
+    <script>
+        function testVoices() {
+            const voices = window.speechSynthesis.getVoices();
+            const output = document.getElementById('output');
+            
+            let html = '<h3>Mevcut Sesler:</h3><ul>';
+            voices.forEach(voice => {
+                html += `<li><strong>${voice.name}</strong> - ${voice.lang} - ${voice.default ? 'Default' : 'Not Default'}</li>`;
+            });
+            html += '</ul>';
+            
+            output.innerHTML = html;
+        }
+
+        function testEnglish() {
+            const utterance = new SpeechSynthesisUtterance("Hello, this is a test");
+            utterance.lang = 'en-US';
+            utterance.rate = 0.7;
+            utterance.pitch = 1.1;
+            
+            // Sadece en-US sesleri bul
+            const voices = window.speechSynthesis.getVoices();
+            const usVoice = voices.find(v => v.lang === 'en-US');
+            
+            if (usVoice) {
+                utterance.voice = usVoice;
+                console.log('Using voice:', usVoice.name, usVoice.lang);
+            } else {
+                console.warn('No en-US voice found!');
+            }
+            
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Sesler yüklendiğinde
+        window.speechSynthesis.onvoiceschanged = () => {
+            console.log('Voices loaded:', window.speechSynthesis.getVoices().length);
+        };
+    </script>
+</body>
+</html>
