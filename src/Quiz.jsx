@@ -13,7 +13,7 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
   useEffect(() => {
     // Favori kelimeleri kontrol et
     const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-    if (favorites.length >= 5) {
+    if (favorites.length >= 3) { // 5'ten 3'e düşürdük
       setIsFavoriteTest(true);
       setFavoriteWords(favorites);
       generateFavoriteQuestions(favorites);
@@ -25,7 +25,7 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
   const generateFavoriteQuestions = (favorites) => {
     console.log("Favori kelimeler:", favorites); // Debug
     const shuffled = [...favorites].sort(() => Math.random() - 0.5);
-    const selected = shuffled.slice(0, 5);
+    const selected = shuffled.slice(0, 3); // 5'ten 3'e düşürdük
     console.log("Seçilen kelimeler:", selected); // Debug
     
     const questions = [
@@ -49,20 +49,6 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
         word: selected[2].word,
         correct: selected[2].word,
         sentence: selected[2].sentence_en.replace(selected[2].word, "_____")
-      },
-      // 1 yazım kontrolü (eşleştirme)
-      {
-        type: "match",
-        word: selected[3].word,
-        correct: selected[3].word,
-        question: `${selected[3].word} kelimesini yazın`
-      },
-      // 1 telaffuz kontrolü (doğru/yanlış)
-      {
-        type: "tf",
-        word: selected[4].word,
-        correct: true,
-        question: `${selected[4].word} kelimesinin telaffuzu doğru mu?`
       }
     ];
     
