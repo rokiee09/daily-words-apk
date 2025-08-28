@@ -3,7 +3,6 @@ import Home from "./Home";
 import Quiz from "./Quiz";
 import Favorites from "./Favorites";
 import Stats from "./Stats";
-import FavoriteQuiz from "./FavoriteQuiz";
 import Settings from "./Settings";
 import { startReminderTimer } from "./utils/notifications";
 
@@ -81,21 +80,6 @@ function App() {
           🎯 Mini Test
         </button>
         <button 
-          onClick={() => setPage("favoriteQuiz")}
-          style={{
-            padding: "10px 20px",
-            fontSize: "14px",
-            border: "2px solid #ff6b6b",
-            background: page === "favoriteQuiz" ? "#ff6b6b" : "white",
-            color: page === "favoriteQuiz" ? "white" : "#ff6b6b",
-            borderRadius: "8px",
-            cursor: "pointer",
-            transition: "all 0.3s ease"
-          }}
-        >
-          ❤️ Favori Test
-        </button>
-        <button 
           onClick={() => setPage("favorites")}
           style={{
             padding: "10px 20px",
@@ -144,7 +128,6 @@ function App() {
       
       {page === "home" && <Home onDailyWordsChange={setDailyWords} />}
       {page === "quiz" && <Quiz dailyWords={dailyWords} onTestComplete={handleTestComplete} onClose={() => setPage("home")} />}
-      {page === "favoriteQuiz" && <FavoriteQuiz />}
       {page === "favorites" && <Favorites />}
       {page === "stats" && <Stats />}
       {page === "settings" && <Settings />}

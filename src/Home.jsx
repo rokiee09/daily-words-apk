@@ -10,15 +10,17 @@ function Home({ onDailyWordsChange }) {
   const [selectedWord, setSelectedWord] = useState(null);
   const [favorites, setFavorites] = useState([]);
   const [speechSupported] = useState(isSpeechSupported());
-  const [today, setToday] = useState(() => new Date().toISOString().slice(0, 10));
+  const [today, setToday] = useState(() => new Date());
   const [showRepeat, setShowRepeat] = useState(false);
   const [repeatWords, setRepeatWords] = useState([]);
 
   // Tarih değişimini dinle (her dakika kontrol)
   useEffect(() => {
     const interval = setInterval(() => {
-      const current = new Date().toISOString().slice(0, 10);
-      if (current !== today) {
+      const current = new Date();
+      const currentString = current.toISOString().slice(0, 10);
+      const todayString = today.toISOString().slice(0, 10);
+      if (currentString !== todayString) {
         setToday(current);
       }
     }, 60 * 1000); // her dakika kontrol et
@@ -26,35 +28,33 @@ function Home({ onDailyWordsChange }) {
   }, [today]);
 
   useEffect(() => {
-    // Favorileri localStorage'dan yükle
+    // Favorileri yükle ve temizle
     const savedFavorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-    setFavorites(savedFavorites);
-    updateFavoriteCount(savedFavorites.length);
-  }, []);
+    console.log("🔍 Home.jsx - Mevcut favoriler:", savedFavorites);
+    
+    // Duplicate'ları temizle
+    const uniqueFavorites = savedFavorites.filter((item, index, self) => 
+      index === self.findIndex(f => f.word === item.word)
+    );
+    
+    if (uniqueFavorites.length !== savedFavorites.length) {
+      console.log("🧹 Home.jsx - Duplicate favoriler temizlendi:", savedFavorites.length, "→", uniqueFavorites.length);
+      localStorage.setItem("favorites", JSON.stringify(uniqueFavorites));
+      setFavorites(uniqueFavorites);
+      updateFavoriteCount(uniqueFavorites.length);
+    } else {
+      setFavorites(uniqueFavorites);
+      updateFavoriteCount(uniqueFavorites.length);
+    }
 
-  useEffect(() => {
-    setLoading(true);
+    // Günlük kelimeleri yükle
     fetch("/words.json")
-      .then((res) => {
-        if (!res.ok) throw new Error("Veri alınamadı");
-        return res.json();
-      })
+      .then((res) => res.json())
       .then((data) => {
-        const dailyWords = getDailyWords(data, new Date(today));
+        const dailyWords = getDailyWords(data, today);
         setWords(dailyWords);
-        
-        // Parent component'e daily words'ü bildir
-        if (onDailyWordsChange) {
-          onDailyWordsChange(dailyWords);
-        }
-        
+        onDailyWordsChange(dailyWords);
         setLoading(false);
-        // Günlük çalışma kaydı
-        recordDailyStudy();
-        // Rozet kontrolü
-        checkStreakBadge();
-        checkFavoriteBadge();
-        checkAdvancedStreakBadges();
       })
       .catch((err) => {
         console.error("Veri yükleme hatası:", err);
@@ -78,22 +78,51 @@ function Home({ onDailyWordsChange }) {
   }, [showRepeat, words]);
 
   function toggleFavorite(word) {
+    console.log("=== FAVORİ İŞLEMİ BAŞLADI ===");
+    console.log("Eklenmek istenen kelime:", word);
+    console.log("Mevcut favoriler:", favorites);
+    
     // Eğer kelime zaten favorilerde varsa çıkar, yoksa ekle
-    const isAlreadyFavorite = favorites.includes(word);
+    const isAlreadyFavorite = favorites.some(f => f.word === word.word);
+    console.log("Zaten favori mi:", isAlreadyFavorite);
+    console.log("Kontrol edilen kelime:", word.word);
+    console.log("Mevcut favori kelimeler:", favorites.map(f => f.word));
     
     if (isAlreadyFavorite) {
       // Favorilerden çıkar
-      const newFavorites = favorites.filter(f => f !== word);
+      const newFavorites = favorites.filter(f => f.word !== word.word);
+      console.log("✅ Favorilerden çıkarıldı, yeni liste:", newFavorites);
       setFavorites(newFavorites);
       localStorage.setItem("favorites", JSON.stringify(newFavorites));
       updateFavoriteCount(newFavorites.length);
     } else {
       // Favorilere ekle (sadece bir kez)
+      // Güçlü duplicate kontrolü
+      if (favorites.some(f => f.word === word.word)) {
+        console.log("❌ HATA: Kelime zaten favorilerde var ama kontrol edilemedi!");
+        return; // Çık
+      }
+      
+      // Ek güvenlik: localStorage'dan tekrar oku ve kontrol et
+      const currentFavorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+      if (currentFavorites.some(f => f.word === word.word)) {
+        console.log("❌ HATA: localStorage'da zaten var!");
+        // localStorage'ı temizle ve state'i güncelle
+        const cleanFavorites = currentFavorites.filter(f => f.word !== word.word);
+        localStorage.setItem("favorites", JSON.stringify(cleanFavorites));
+        setFavorites(cleanFavorites);
+        updateFavoriteCount(cleanFavorites.length);
+        return;
+      }
+      
       const newFavorites = [...favorites, word];
+      console.log("✅ Favorilere eklendi, yeni liste:", newFavorites);
       setFavorites(newFavorites);
       localStorage.setItem("favorites", JSON.stringify(newFavorites));
       updateFavoriteCount(newFavorites.length);
     }
+    
+    console.log("=== FAVORİ İŞLEMİ BİTTİ ===");
   }
 
   if (loading) return <div>Yükleniyor...</div>;
@@ -195,18 +224,18 @@ function Home({ onDailyWordsChange }) {
                   </div>
                 </div>
                 <button
-                  onClick={() => toggleFavorite(w.word)}
+                  onClick={() => toggleFavorite(w)}
                   style={{
                     background: "none",
                     border: "none",
                     fontSize: 24,
                     cursor: "pointer",
-                    color: favorites.includes(w.word) ? "red" : "gray",
+                    color: favorites.some(f => f.word === w.word) ? "red" : "gray",
                     marginLeft: 8
                   }}
-                  aria-label={favorites.includes(w.word) ? "Favorilerden çıkar" : "Favorilere ekle"}
+                  aria-label={favorites.some(f => f.word === w.word) ? "Favorilerden çıkar" : "Favorilere ekle"}
                 >
-                  {favorites.includes(w.word) ? "❤️" : "🤍"}
+                  {favorites.some(f => f.word === w.word) ? "❤️" : "🤍"}
                 </button>
               </div>
             </li>
@@ -276,18 +305,18 @@ function Home({ onDailyWordsChange }) {
                 </div>
               </div>
               <button
-                onClick={() => toggleFavorite(w.word)}
+                onClick={() => toggleFavorite(w)}
                 style={{
                   background: "none",
                   border: "none",
                   fontSize: 24,
                   cursor: "pointer",
-                  color: favorites.includes(w.word) ? "red" : "gray",
+                  color: favorites.some(f => f.word === w.word) ? "red" : "gray",
                   marginLeft: 8
                 }}
-                aria-label={favorites.includes(w.word) ? "Favorilerden çıkar" : "Favorilere ekle"}
+                aria-label={favorites.some(f => f.word === w.word) ? "Favorilerden çıkar" : "Favorilere ekle"}
               >
-                {favorites.includes(w.word) ? "❤️" : "🤍"}
+                {favorites.some(f => f.word === w.word) ? "❤️" : "🤍"}
               </button>
             </div>
           </li>

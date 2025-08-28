@@ -1,7 +1,10 @@
 // İstatistik verilerini localStorage'dan yükle
 export function loadStats() {
-  const stats = JSON.parse(localStorage.getItem("dailyWordsStats") || "{}");
-  return {
+  const rawStats = localStorage.getItem("dailyWordsStats");
+  console.log("🔍 stats.js - loadStats - Raw localStorage data:", rawStats);
+  
+  const stats = JSON.parse(rawStats || "{}");
+  const defaultStats = {
     totalWordsLearned: stats.totalWordsLearned || 0,
     consecutiveDays: stats.consecutiveDays || 0,
     lastStudyDate: stats.lastStudyDate || null,
@@ -10,11 +13,19 @@ export function loadStats() {
     favoriteWordsCount: stats.favoriteWordsCount || 0,
     studyHistory: stats.studyHistory || []
   };
+  
+  console.log("🔍 stats.js - loadStats - Parsed stats:", defaultStats);
+  return defaultStats;
 }
 
 // İstatistikleri kaydet
 export function saveStats(stats) {
+  console.log("🔍 stats.js - saveStats - Kaydedilecek stats:", stats);
   localStorage.setItem("dailyWordsStats", JSON.stringify(stats));
+  
+  // Kaydedildikten sonra kontrol et
+  const saved = localStorage.getItem("dailyWordsStats");
+  console.log("🔍 stats.js - saveStats - Kaydedilen raw data:", saved);
 }
 
 // Günlük çalışma kaydı
@@ -53,9 +64,19 @@ export function recordDailyStudy() {
 
 // Test sonucunu kaydet
 export function recordTestResult(correctCount, totalQuestions) {
+  console.log("🔍 stats.js - recordTestResult çağrıldı:", { correctCount, totalQuestions });
+  
   const stats = loadStats();
+  console.log("🔍 stats.js - Mevcut stats:", stats);
+  
   stats.totalTestsTaken++;
   stats.totalCorrectAnswers += correctCount;
+  
+  console.log("🔍 stats.js - Güncellenmiş stats:", {
+    totalTestsTaken: stats.totalTestsTaken,
+    totalCorrectAnswers: stats.totalCorrectAnswers
+  });
+  
   saveStats(stats);
 }
 
@@ -70,7 +91,19 @@ export function updateFavoriteCount(count) {
 export function calculateSuccessRate() {
   const stats = loadStats();
   if (stats.totalTestsTaken === 0) return 0;
-  return Math.round((stats.totalCorrectAnswers / (stats.totalTestsTaken * 5)) * 100);
+  
+  // Toplam doğru cevap sayısını toplam soru sayısına böl
+  const totalQuestions = stats.totalTestsTaken * 5; // Her test 5 soru
+  const successRate = Math.round((stats.totalCorrectAnswers / totalQuestions) * 100);
+  
+  console.log("Başarı oranı hesaplama:", {
+    totalTests: stats.totalTestsTaken,
+    totalCorrect: stats.totalCorrectAnswers,
+    totalQuestions: totalQuestions,
+    successRate: successRate
+  });
+  
+  return successRate;
 }
 
 // Haftalık çalışma verilerini al

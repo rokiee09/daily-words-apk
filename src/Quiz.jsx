@@ -1,82 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { speakWord, speakSentence, stopSpeaking } from './utils/speech.js';
+import { recordTestResult, recordDailyStudy } from './utils/stats.js';
 
 function Quiz({ onClose, dailyWords, onTestComplete }) {
+  console.log("Quiz component render edildi, props:", { onClose, dailyWords, onTestComplete });
+  
   const [questions, setQuestions] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [score, setScore] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [userAnswers, setUserAnswers] = useState({});
-  const [isFavoriteTest, setIsFavoriteTest] = useState(false);
-  const [favoriteWords, setFavoriteWords] = useState([]);
 
   useEffect(() => {
-    // Favori kelimeleri kontrol et
-    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-    if (favorites.length >= 3) { // 5'ten 3'e düşürdük
-      setIsFavoriteTest(true);
-      setFavoriteWords(favorites);
-      generateFavoriteQuestions(favorites);
-    } else {
-      generateQuestions();
-    }
-  }, []);
-
-  const generateFavoriteQuestions = (favorites) => {
-    console.log("Favori kelimeler:", favorites); // Debug
-    const shuffled = [...favorites].sort(() => Math.random() - 0.5);
-    const selected = shuffled.slice(0, 3); // 5'ten 3'e düşürdük
-    console.log("Seçilen kelimeler:", selected); // Debug
+    console.log("Quiz useEffect çalıştı"); // Debug
+    console.log("dailyWords prop:", dailyWords); // Debug
+    console.log("dailyWords type:", typeof dailyWords); // Debug
+    console.log("dailyWords length:", dailyWords?.length); // Debug
     
-    const questions = [
-      // 1 yazım sorusu (eşleştirme)
-      {
-        type: "match",
-        word: selected[0].word,
-        correct: selected[0].word,
-        question: `${selected[0].word} kelimesini yazın`
-      },
-      // 1 telaffuz sorusu (doğru/yanlış)
-      {
-        type: "tf",
-        word: selected[1].word,
-        correct: true,
-        question: `${selected[1].word} kelimesinin telaffuzu doğru mu?`
-      },
-      // 1 cümle tamamlama (boşluk doldurma)
-      {
-        type: "fill",
-        word: selected[2].word,
-        correct: selected[2].word,
-        sentence: selected[2].sentence_en.replace(selected[2].word, "_____")
-      }
-    ];
-    
-    console.log("Oluşturulan sorular:", questions); // Debug
-    setQuestions(questions);
-  };
+    // Sadece mini test açılıyor
+    console.log("Mini test açılıyor"); // Debug
+    generateQuestions();
+  }, [dailyWords]); // dailyWords dependency ekledik
 
   const generateQuestions = () => {
-    if (!dailyWords || dailyWords.length === 0) return;
+    console.log("generateQuestions çalıştı, dailyWords:", dailyWords);
+    
+    if (!dailyWords || dailyWords.length === 0) {
+      console.log("dailyWords yok veya boş!");
+      return;
+    }
     
     const data = dailyWords;
     const daily = data.slice(0, 5); // 5 kelime
     
+    console.log("Seçilen günlük kelimeler:", daily);
+    
     const questions = [
       // 2 çoktan seçmeli (anlam)
       ...daily.slice(0, 2).map((w, index) => {
-        const availableWrongs = data.filter(x => 
-          x.word !== w.word && 
-          x.meaning && 
-          x.meaning.trim() !== '' &&
-          !daily.some(d => d.word === x.word)
-        );
+        // Diğer günlük kelimelerden yanlış cevaplar al
+        const availableWrongs = daily.filter(x => x.word !== w.word && x.meaning);
         
         let wrongs = [];
         if (availableWrongs.length >= 3) {
-          wrongs = shuffle(availableWrongs).slice(0, 3).map(x => x.meaning);
+          wrongs = availableWrongs.slice(0, 3).map(x => x.meaning);
         } else {
-          wrongs = ["bilinmiyor", "farklı anlam", "benzer kelime"];
+          // Eğer yeterli yanlış cevap yoksa, genel kelimeler ekle
+          wrongs = ["büyük", "yeni", "iyi"];
         }
         
         const options = shuffle([w.meaning, ...wrongs]);
@@ -111,6 +81,7 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
       }
     ];
     
+    console.log("Oluşturulan sorular:", questions);
     setQuestions(questions);
   };
 
@@ -127,6 +98,13 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
     const currentQ = questions[currentStep];
     let isCorrect = false;
     
+    console.log(`🔍 Quiz.jsx - handleAnswer çağrıldı:`, {
+      currentStep: currentStep,
+      answer: answer,
+      question: currentQ,
+      answerType: typeof answer
+    });
+    
     if (currentQ.type === "mc") {
       isCorrect = answer === currentQ.correct;
     } else if (currentQ.type === "tf") {
@@ -137,41 +115,119 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
       isCorrect = answer.toLowerCase().trim() === currentQ.correct.toLowerCase().trim();
     }
     
+    console.log(`🔍 Quiz.jsx - Cevap kontrolü:`, {
+      isCorrect: isCorrect,
+      expected: currentQ.correct,
+      received: answer
+    });
+    
     if (isCorrect) {
       setScore(score + 1);
+      console.log(`🔍 Quiz.jsx - Skor güncellendi: ${score} → ${score + 1}`);
     }
     
-    setUserAnswers({ ...userAnswers, [currentStep]: answer });
+    // userAnswers'ı güncelle
+    const newUserAnswers = { ...userAnswers, [currentStep]: answer };
+    console.log(`🔍 Quiz.jsx - userAnswers güncellendi:`, {
+      old: userAnswers,
+      new: newUserAnswers,
+      currentStep: currentStep
+    });
+    
+    setUserAnswers(newUserAnswers);
     
     if (currentStep < questions.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      finishTest();
+      // Son soru - userAnswers güncellendikten sonra finishTest'i çağır
+      console.log(`🔍 Quiz.jsx - Son soru, finishTest çağrılıyor`);
+      setTimeout(() => {
+        finishTest(newUserAnswers);
+      }, 0);
     }
   };
 
-  const finishTest = () => {
+  const finishTest = (userAnswers) => {
     setShowResult(true);
     
-    // Test sonucunu kaydet
+    // Debug: localStorage'ı kontrol et
+    console.log("🔍 Quiz.jsx - finishTest başladı");
+    console.log("🔍 Quiz.jsx - Mevcut score state:", score);
+    console.log("🔍 Quiz.jsx - Parametre olarak gelen userAnswers:", userAnswers);
+    console.log("🔍 Quiz.jsx - Questions:", questions);
+    
+    // userAnswers objesinin detaylı içeriğini göster
+    console.log("🔍 Quiz.jsx - userAnswers detaylı analiz:");
+    Object.keys(userAnswers).forEach(key => {
+      console.log(`  Soru ${parseInt(key) + 1}:`, {
+        index: key,
+        answer: userAnswers[key],
+        question: questions[key],
+        isAnswerPresent: userAnswers[key] !== undefined && userAnswers[key] !== null
+      });
+    });
+    
+    // Doğru skor hesapla - parametre olarak gelen userAnswers'dan
+    const correctAnswers = Object.values(userAnswers).filter((answer, index) => {
+      const currentQ = questions[index];
+      let isCorrect = false;
+      
+      if (currentQ.type === "mc") {
+        isCorrect = answer === currentQ.correct;
+      } else if (currentQ.type === "tf") {
+        isCorrect = answer === currentQ.correct;
+      } else if (currentQ.type === "match") {
+        isCorrect = answer.toLowerCase().trim() === currentQ.correct.toLowerCase().trim();
+      } else if (currentQ.type === "fill") {
+        isCorrect = answer.toLowerCase().trim() === currentQ.correct.toLowerCase().trim();
+      }
+      
+      console.log(`🔍 Quiz.jsx - Soru ${index + 1}:`, {
+        type: currentQ.type,
+        answer: answer,
+        correct: currentQ.correct,
+        isCorrect: isCorrect,
+        answerType: typeof answer,
+        answerLength: answer ? answer.length : 'undefined'
+      });
+      
+      return isCorrect;
+    }).length;
+    
+    // Test sonucunu kaydet - hesaplanan doğru skor ile
     const testResult = {
       date: new Date().toISOString(),
-      score: score + (userAnswers[currentStep] ? 1 : 0),
+      score: correctAnswers, // Hesaplanan doğru skor
       total: questions.length,
-      isFavoriteTest,
-      testType: isFavoriteTest ? "favorite" : "daily"
+      testType: "daily"
     };
-    
+
+    console.log("🔍 Quiz.jsx - Test sonucu oluşturuldu:", testResult);
+    console.log("🔍 Quiz.jsx - Hesaplanan doğru skor:", correctAnswers);
+    console.log("🔍 Quiz.jsx - Questions length:", questions.length);
+    console.log("🔍 Quiz.jsx - User answers:", userAnswers);
+
     // Test sonuçlarını localStorage'a kaydet
     const testResults = JSON.parse(localStorage.getItem("testResults") || "[]");
+    console.log("🔍 Quiz.jsx - Mevcut testResults:", testResults);
+    
     testResults.push(testResult);
     localStorage.setItem("testResults", JSON.stringify(testResults));
     
-    // Eğer günlük test başarılıysa ve favori test değilse, kelimeleri öğrenildi olarak işaretle
-    if (!isFavoriteTest && testResult.score >= 4) {
+    console.log("🔍 Quiz.jsx - Güncellenmiş testResults:", testResults);
+
+    // İstatistikleri güncelle - hesaplanan doğru skor ile
+    console.log("🔍 Quiz.jsx - recordTestResult çağrılıyor:", { correctAnswers, questionsLength: questions.length });
+    recordTestResult(correctAnswers, questions.length);
+    
+    // Eğer günlük test başarılıysa, kelimeleri öğrenildi olarak işaretle
+    if (testResult.score >= 4) {
       const learnedWords = JSON.parse(localStorage.getItem("learnedWords") || "[]");
       const newLearned = dailyWords.map(w => w.word).filter(w => !learnedWords.includes(w));
       localStorage.setItem("learnedWords", JSON.stringify([...learnedWords, ...newLearned]));
+      
+      // Günlük çalışma kaydı
+      recordDailyStudy();
     }
     
     if (onTestComplete) {
@@ -191,11 +247,7 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
     setShowResult(false);
     setUserAnswers({});
     
-    if (isFavoriteTest) {
-      generateFavoriteQuestions(favoriteWords);
-    } else {
-      generateQuestions();
-    }
+    generateQuestions();
   };
 
   if (questions.length === 0) {
@@ -207,9 +259,25 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
   }
 
   if (showResult) {
-    const finalScore = score + (userAnswers[currentStep] ? 1 : 0);
+    // Doğru skor hesapla - userAnswers'dan
+    const finalScore = Object.values(userAnswers).filter((answer, index) => {
+      const currentQ = questions[index];
+      if (currentQ.type === "mc") {
+        return answer === currentQ.correct;
+      } else if (currentQ.type === "tf") {
+        return answer === currentQ.correct;
+      } else if (currentQ.type === "match") {
+        return answer.toLowerCase().trim() === currentQ.correct.toLowerCase().trim();
+      } else if (currentQ.type === "fill") {
+        return answer.toLowerCase().trim() === currentQ.correct.toLowerCase().trim();
+      }
+      return false;
+    }).length;
+    
     const percentage = Math.round((finalScore / questions.length) * 100);
     const isPassed = finalScore >= 4;
+    
+    console.log("Sonuç gösterimi:", { finalScore, total: questions.length, percentage, isPassed });
     
     return (
       <div style={{ padding: "20px", textAlign: "center" }}>
@@ -218,15 +286,14 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
           {finalScore}/{questions.length} ({percentage}%)
         </div>
         
-        {isPassed ? (
-          <div style={{ color: "#28a745", marginBottom: "20px" }}>
-            {isFavoriteTest ? "Favori test başarılı!" : "Tebrikler! Günlük kelimeleri öğrendiniz!"}
-          </div>
-        ) : (
-          <div style={{ color: "#dc3545", marginBottom: "20px" }}>
-            {isFavoriteTest ? "Favori test başarısız. Tekrar deneyin!" : "Daha fazla çalışmanız gerekiyor."}
-          </div>
-        )}
+        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <h2 style={{ color: "#28a745", marginBottom: "10px" }}>
+            {isPassed ? "🎉 Tebrikler! Günlük kelimeleri öğrendiniz!" : "😔 Daha fazla çalışmanız gerekiyor."}
+          </h2>
+          <p style={{ fontSize: "18px", color: "#666" }}>
+            {isPassed ? "Günlük kelimeleri başarıyla öğrendiniz!" : "Daha fazla çalışmanız gerekiyor."}
+          </p>
+        </div>
         
         <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
           <button 
@@ -244,7 +311,7 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
             Tekrar Dene
           </button>
           
-          {!isFavoriteTest && isPassed && (
+          {!isPassed && (
             <button 
               onClick={handleNextDay}
               style={{
@@ -285,16 +352,13 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
   return (
     <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-        <h2>{isFavoriteTest ? "Favori Test" : "Günlük Test"}</h2>
+        <h2>Günlük Test</h2>
         <div style={{ fontSize: "1.2rem" }}>
           {currentStep + 1}/{questions.length}
         </div>
       </div>
       
       <div style={{ marginBottom: "20px" }}>
-        <div style={{ fontSize: "1.1rem", marginBottom: "10px" }}>
-          Skor: {score}
-        </div>
         <div style={{ 
           width: "100%", 
           height: "8px", 
@@ -316,20 +380,6 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
         <div>
           <div style={{ fontSize: "1.2rem", marginBottom: "20px", color: "#111" }}>
             <b>{currentQ.word}</b> kelimesinin anlamı nedir?
-            <button 
-              onClick={() => speakWord(currentQ.word)}
-              style={{
-                marginLeft: "10px",
-                padding: "8px 12px",
-                border: "none",
-                borderRadius: "4px",
-                background: "#007bff",
-                color: "white",
-                cursor: "pointer"
-              }}
-            >
-              🔊 Telaffuz
-            </button>
           </div>
           <div style={{ display: "grid", gap: "12px" }}>
             {currentQ.options.map((opt, index) => (
@@ -427,20 +477,6 @@ function Quiz({ onClose, dailyWords, onTestComplete }) {
         <div>
           <div style={{ fontSize: "1.2rem", marginBottom: "20px", color: "#111" }}>
             {currentQ.question}
-            <button 
-              onClick={() => speakWord(currentQ.word)}
-              style={{
-                marginLeft: "10px",
-                padding: "8px 12px",
-                border: "none",
-                borderRadius: "4px",
-                background: "#007bff",
-                color: "white",
-                cursor: "pointer"
-              }}
-            >
-              🔊 Telaffuz
-            </button>
           </div>
           <div style={{ marginBottom: "20px" }}>
             <input

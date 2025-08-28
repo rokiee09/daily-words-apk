@@ -6,6 +6,67 @@ import {
   loadBadges 
 } from "./utils/stats";
 
+// Test sonuçlarını gösteren component
+function TestResultsList() {
+  const [testResults, setTestResults] = useState([]);
+
+  useEffect(() => {
+    const results = JSON.parse(localStorage.getItem("testResults") || "[]");
+    setTestResults(results.slice(-10).reverse()); // Son 10 test sonucu
+  }, []);
+
+  if (testResults.length === 0) {
+    return (
+      <div style={{ textAlign: "center", padding: "20px", color: "#666" }}>
+        Henüz test sonucu yok. Mini test yaparak başlayın!
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+      {testResults.map((result, index) => {
+        const date = new Date(result.date);
+        const percentage = Math.round((result.score / result.total) * 100);
+        const isPassed = result.score >= 4;
+        
+        return (
+          <div 
+            key={index}
+            style={{
+              background: isPassed ? "#d4edda" : "#f8d7da",
+              border: `1px solid ${isPassed ? "#c3e6cb" : "#f5c6cb"}`,
+              borderRadius: "8px",
+              padding: "16px",
+              marginBottom: "12px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center"
+            }}
+          >
+            <div>
+              <div style={{ fontWeight: "bold", marginBottom: "4px" }}>
+                {date.toLocaleDateString('tr-TR')} - {date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+              </div>
+              <div style={{ color: "#666", fontSize: "14px" }}>
+                {result.testType === "daily" ? "Günlük Test" : "Favori Test"}
+              </div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: "1.2rem", fontWeight: "bold", color: isPassed ? "#155724" : "#721c24" }}>
+                {result.score}/{result.total} ({percentage}%)
+              </div>
+              <div style={{ fontSize: "12px", color: isPassed ? "#155724" : "#721c24" }}>
+                {isPassed ? "✅ Başarılı" : "❌ Başarısız"}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function Stats() {
   const [stats, setStats] = useState(null);
 
@@ -17,6 +78,7 @@ function Stats() {
   if (!stats) return <div>Yükleniyor...</div>;
 
   const successRate = calculateSuccessRate();
+  
   const weeklyStudyDays = getWeeklyStats();
   const badges = loadBadges();
 
@@ -103,10 +165,16 @@ function Stats() {
           borderRadius: "12px",
           textAlign: "center"
         }}>
-          <h3 style={{ margin: "0 0 8px 0", fontSize: "1.2rem" }}>📅 Bu Hafta</h3>
+          <h3 style={{ margin: "0 0 8px 0", fontSize: "1.2rem" }}>📅 Haftalık Çalışma</h3>
           <div style={{ fontSize: "2.5rem", fontWeight: "bold" }}>{weeklyStudyDays}</div>
-          <p style={{ margin: "8px 0 0 0", opacity: 0.7 }}>Çalışılan gün sayısı</p>
+          <p style={{ margin: "8px 0 0 0", opacity: 0.7 }}>Bu hafta çalışılan gün</p>
         </div>
+      </div>
+
+      {/* Test Sonuçları Detayı */}
+      <div style={{ marginTop: "2rem" }}>
+        <h2 style={{ textAlign: "center", marginBottom: "1rem" }}>📊 Test Sonuçları</h2>
+        <TestResultsList />
       </div>
 
       {/* Rozetler */}

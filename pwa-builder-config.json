@@ -1,0 +1,26 @@
+{
+  "pwaBuilder": {
+    "android": {
+      "package": "app.vercel.daily_words_apk.twa",
+      "versionCode": 2,
+      "versionName": "1.0.4",
+      "keystore": {
+        "file": "daily-words-keystore.jks",
+        "alias": "upload",
+        "password": "YOUR_KEY_PASSWORD",
+        "storePassword": "YOUR_STORE_PASSWORD"
+      }
+    },
+    "manifest": {
+      "url": "https://daily-words-app.vercel.app/manifest.webmanifest",
+      "name": "Daily Words",
+      "shortName": "DailyWords",
+      "description": "Learn daily English words with examples and pronunciation.",
+      "version": "1.0.4",
+      "startUrl": "https://daily-words-app.vercel.app/",
+      "scope": "https://daily-words-app.vercel.app/"
+    }
+  }
+}
+
+
