@@ -4,9 +4,9 @@
     "target": {
       "namespace": "android_app",
       "package_name": "com.dailywords.app",
-      "sha256_cert_fingerprints": [
-        "YOUR_SHA256_FINGERPRINT_HERE"
-      ]
+              "sha256_cert_fingerprints": [
+          "YOUR_ACTUAL_SHA256_FINGERPRINT_FROM_KEYTOOL"
+        ]
     }
   }
 ]
